@@ -279,7 +279,8 @@ bool linkCallback(Part* part, InputEvent event) {
   #ifdef WIN32
     ShellExecuteA(0, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
   #else
-    (void)system(sprintf_o("xdg-open %s", url.c_str()));
+    int result = system(sprintf_o("xdg-open %s", url.c_str()));
+    (void)result; // Ignore result for xdg-open
   #endif
 
   return true;

@@ -61,7 +61,12 @@ static char *stb_include_load_file(const char *filename, size_t *plen)
    text = (char *) malloc(len+1);
    if (text == 0) return 0;
    fseek(f, 0, SEEK_SET);
-   fread(text, 1, len, f);
+   size_t bytes_read = fread(text, 1, len, f);
+   if (bytes_read != len) {
+      free(text);
+      fclose(f);
+      return 0;
+   }
    fclose(f);
    text[len] = 0;
    return text;

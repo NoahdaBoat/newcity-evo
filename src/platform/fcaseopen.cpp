@@ -109,7 +109,8 @@ void casechdir(char const *path)
   char *r = (char*)alloca(strlen(path) + 2);
   if(casepath(path, r))
   {
-    (void)chdir(r);
+    int result = chdir(r);
+    (void)result; // Ignore result for chdir
   } else
   {
     errno = ENOENT;

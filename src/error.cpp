@@ -455,8 +455,12 @@ void handleError(const char* format, ...) {
   #ifdef __linux__
     va_list args;
     va_start(args, format);
-    vasprintf(&str, format, args);
+    int result = vasprintf(&str, format, args);
     va_end(args);
+    if (result == -1) {
+      str = (char*) malloc(256*sizeof(char));
+      snprintf(str, 256, "Error formatting message");
+    }
 
   #elif _WIN32
     str = (char*) malloc(256*sizeof(char));

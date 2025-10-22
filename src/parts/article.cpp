@@ -74,7 +74,8 @@ void webLink(char* url) {
   #ifdef WIN32
     ShellExecuteA(0, "open", url, NULL, NULL, SW_SHOWNORMAL);
   #else
-    (void)system(sprintf_o("xdg-open %s", url));
+    int result = system(sprintf_o("xdg-open %s", url));
+    (void)result; // Ignore result for xdg-open
   #endif
 }
 
