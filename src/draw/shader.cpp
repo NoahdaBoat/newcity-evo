@@ -372,9 +372,9 @@ GLuint loadShaderFile(char* filename, GLuint type) {
   char* modFilename = strdup_s(lookupFile(filename, 0).c_str());
   char* modShaders = sprintf_o("%sshaders", modDirectory());
   // load from the mods directory
-  char* shaderCode0 = stb_include_file(modFilename, "", modShaders, error);
+  char* shaderCode0 = stb_include_file(modFilename, (char*)"", modShaders, error);
   // load from the base directory
-  char* shaderCode = stb_include_string(shaderCode0, "", "shaders",
+  char* shaderCode = stb_include_string(shaderCode0, (char*)"", (char*)"shaders",
       modFilename, error);
 
   if (!startsWith(shaderCode, "#version")) {

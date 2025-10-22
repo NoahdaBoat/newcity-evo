@@ -318,8 +318,8 @@ void runMeshCommands() {
       */
 
     } else if (c->type == ResetMeshes) {
-      for (int i = 1; i < bufferedMeshes.size(); i++) {
-        BufferedMesh* mesh = getBufferedMesh(i);
+      for (int j = 1; j < bufferedMeshes.size(); j++) {
+        BufferedMesh* mesh = getBufferedMesh(j);
         if (mesh->buffer) {
           free(mesh->buffer);
           mesh->buffer = 0;

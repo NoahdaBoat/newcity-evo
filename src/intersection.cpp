@@ -221,16 +221,16 @@ void printIntersection(const char* title, Node* node, item ndx) {
     Edge* edge = getEdge(node->edges[i]);
     int end = (edge->ends[0] != ndx);
     for (int j=0; j < 2; j ++) {
-      item ndx = edge->laneBlocks[j];
-      LaneBlock* block = getLaneBlock(ndx);
+      item laneNdx = edge->laneBlocks[j];
+      LaneBlock* block = getLaneBlock(laneNdx);
       char c = (j == end) ? '>' : '<';
       printf("  %c LaneBlock %d: %d source, %d drains\n",
-        c, ndx, block->sources.size(), block->drains.size());
+        c, laneNdx, block->sources.size(), block->drains.size());
 
       for(int k=0; k < block->numLanes; k++) {
         Lane* lane = &block->lanes[k];
         printf("      Lane %d: %d source, %d drains\n",
-          ndx+k, lane->sources.size(), lane->drains.size());
+          laneNdx+k, lane->sources.size(), lane->drains.size());
       }
     }
   }

@@ -864,12 +864,12 @@ void personPanel(Part* result, Person* selection) {
       actName = strdup_s(getRawActivityName(activity));
     }
 
-    Part* act = 0;
+    Part* activityPart = 0;
 
     if (debugMode()) {
 
       // Debug activity presentation
-      act = label(vec2(scl, acty), scl, sprintf_o("%+6.1f%% %s",
+      activityPart = label(vec2(scl, acty), scl, sprintf_o("%+6.1f%% %s",
         score*100, actName));
       if (activity == selection->activity) {
         r(actvitiesPanel, icon(vec2(0, acty), vec2(scl, scl), iconRightSmall));
@@ -878,22 +878,22 @@ void personPanel(Part* result, Person* selection) {
     } else { 
 
       // Player-facing activity presentation
-      act = label(vec2(scl, acty), scl, sprintf_o("%d. %s",
+      activityPart = label(vec2(scl, acty), scl, sprintf_o("%d. %s",
         i+1, actName));
       if (activity == selection->activity) {
         r(actvitiesPanel, icon(vec2(0, acty), vec2(scl, scl), iconRightSmall));
-        act->foregroundColor = (char)PickerPalette::White;
+        activityPart->foregroundColor = (char)PickerPalette::White;
       } else
       {
-        act->foregroundColor = (char)PickerPalette::GrayLight;
+        activityPart->foregroundColor = (char)PickerPalette::GrayLight;
       }
 
     }
 
     // Only add activity leaf and increment acty var
     // if pointer is not null
-    if (act != 0) {
-      r(actvitiesPanel, act);
+    if (activityPart != 0) {
+        r(actvitiesPanel, activityPart);
       acty += sclPad;
     }
 

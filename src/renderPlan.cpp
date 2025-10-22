@@ -116,11 +116,11 @@ void renderPlan(item ndx) {
 
     if (affordable && completable) {
       l = planCompleteBox;
-      Line iconL = iconToSpritesheet(iconYes);
+      Line iconLYes = iconToSpritesheet(iconYes);
       makeQuad(iconMesh[planYesIconEntity],
         l.start, vec3(l.end.x, l.start.y, l.start.z),
         vec3(l.start.x, l.end.y, l.end.z), l.end,
-        iconL.start, iconL.end);
+        iconLYes.start, iconLYes.end);
     }
   }
 

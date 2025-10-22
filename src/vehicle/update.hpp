@@ -21,7 +21,7 @@ void addVehicleCommand(item ndx);
 void addTravelGroupCommand(item ndx);
 void removeTravelGroupCommand_v(item ndx);
 void swapVehiclesCommand(bool doFull);
-void validateSwapVehicles(char* msg);
+void validateSwapVehicles(const char* msg);
 void swapVehiclesBack();
 void setPauseVehicleThread(bool val);
 void resetVehiclesCommand();

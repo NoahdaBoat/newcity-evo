@@ -107,9 +107,9 @@ void makeLots(item ndx, int flags) {
 
   if (ndx < 0) {
     Node* node = getNode(ndx);
-    vector<item> edges = getCompletedEdges(ndx);
-    if (edges.size() == 0) return;
-    Line el = getLine(edges[0]);
+    vector<item> nodeEdges = getCompletedEdges(ndx);
+    if (nodeEdges.size() == 0) return;
+    Line el = getLine(nodeEdges[0]);
     vec3 norm = el.end-el.start;
     norm.z = 0;
     norm = normalize(norm) * (node->intersectionSize + c(CBuildDistance));
@@ -333,7 +333,7 @@ void finishGraph() {
   for (int i = 0; i < toFree.size(); i++) {
     item ndx = toFree[i];
     if (ndx < 0) {
-      nodes->free(-ndx);
+      splitNodes->free(-ndx);
     } else if (ndx > 0) {
       clearGraphChildren(ndx);
       edges->free(ndx);
@@ -371,7 +371,7 @@ void renderGraphElement(item ndx) {
 
 vec3 edgeCutsStartPoint;
 
-struct compareCuts : binary_function <vec3, vec3, bool> {
+struct compareCuts {
   bool operator() (vec3 const& x, vec3 const& y) const {
     return vecDistance(edgeCutsStartPoint, x) < vecDistance(edgeCutsStartPoint, y);
   }

@@ -1,6 +1,13 @@
 #include "vorbis_proxy.hpp"
 
+// Suppress warnings for external STB Vorbis library (v1.22)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
 #include "stb_vorbis.c"
+#pragma GCC diagnostic pop
 
 int loadOgg(const char *filename, int *channels,
     int *sample_rate, short **output) {

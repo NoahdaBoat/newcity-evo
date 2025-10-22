@@ -352,7 +352,7 @@ void setupInstancedAttribs() {
   for (int i = 0; i < 4; i++) {
     glEnableVertexAttribArray(i+baseAttrib);
     glVertexAttribPointer(i+baseAttrib, 4,
-        GL_FLOAT, GL_FALSE, dataSize, (void*)(i * vec4Size));
+        GL_FLOAT, GL_FALSE, dataSize, (void*)((size_t)(i * vec4Size)));
     glVertexAttribDivisor(i+baseAttrib, 1);
   }
 
@@ -371,7 +371,7 @@ void setupTreeAttribs() {
 
 void setupVertexAttribs() {
   int strideSize = stride*sizeof(float);
-  int offsetSize = sizeof(float)*3;
+  size_t offsetSize = sizeof(float)*3;
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);

@@ -54,7 +54,7 @@ static bool areTunnelsVisible = true;
 static item lastVisualUpdate = 0;
 static bool leftHandTraffic = false;
 
-Pool<Node>* nodes = Pool<Node>::newPool(2000);
+Pool<Node>* splitNodes = Pool<Node>::newPool(2000);
 Pool<Edge>* edges = Pool<Edge>::newPool(2000);
 
 void complete(item ndx, bool deintersect, Configuration config);
@@ -69,11 +69,11 @@ void setAutomaticBridges(bool val) {
 }
 
 item numNodes() {
-  return nodes->count();
+  return splitNodes->count();
 }
 
 item sizeNodes() {
-  return nodes->size();
+  return splitNodes->size();
 }
 
 item sizeEdges() {
@@ -85,7 +85,7 @@ item numCompleteEdges() {
 }
 
 Node* getNode(item ndx) {
-  return nodes->get(-ndx);
+  return splitNodes->get(-ndx);
 }
 
 bool isLeftHandTraffic() {
@@ -156,14 +156,14 @@ void adjustGraphStats(item ndx, float mult) {
 }
 
 item getRandomNode() {
-  if (nodes->count() == 0) {
+  if (splitNodes->count() == 0) {
     return 0;
   }
 
   Node* result;
   item resultNdx = 0;
   for (int i=0; i < 100; i++) {
-    resultNdx = -randItem(nodes->size()) - 1;
+    resultNdx = -randItem(splitNodes->size()) - 1;
     result = getNode(resultNdx);
     if (result->flags & _graphExists) {
       return resultNdx;
@@ -178,7 +178,7 @@ Edge* getEdge(item ndx) {
 
 item addNode(vec3 center, Configuration config) {
   //if (center.z < beachLine+1) center.z = beachLine+1;
-  item ndx = -nodes->create();
+  item ndx = -splitNodes->create();
   Node* node = getNode(ndx);
   node->center = center;
   node->edges.clear();
@@ -411,9 +411,9 @@ bool nameEdge(item edgeNdx, item endNdx) {
 
   item nodeNdx = edge->ends[endNdx];
   Node* node = getNode(nodeNdx);
-  vector<item> edges = node->edges.toVector();
-  item oddManOut = getOddManOut(nodeNdx, edges);
-  int numEdges = edges.size();
+  vector<item> nodeEdges = node->edges.toVector();
+  item oddManOut = getOddManOut(nodeNdx, nodeEdges);
+  int numEdges = nodeEdges.size();
   if (numEdges <= 1) {
     //SPDLOG_INFO("not naming edge {}:single", edgeNdx);
     return false;
@@ -423,10 +423,10 @@ bool nameEdge(item edgeNdx, item endNdx) {
   item itemInNode = -1;
   const char** names = (const char**)alloca(sizeof(char*)*numEdges);
   for (int i = 0; i < numEdges; i++) {
-    if (edges[i] == edgeNdx) {
+    if (nodeEdges[i] == edgeNdx) {
       itemInNode = i;
     }
-    names[i] = getEdge(edges[i])->name;
+    names[i] = getEdge(nodeEdges[i])->name;
   }
   if (itemInNode == oddManOut) {
     //SPDLOG_INFO("not naming edge {}:odd man out", edgeNdx);
@@ -457,10 +457,10 @@ bool nameEdge(item edgeNdx, item endNdx) {
       */
 
   //Consider name
-  Edge* otherEdge = getEdge(edges[pairNum]);
+  Edge* otherEdge = getEdge(nodeEdges[pairNum]);
   const char* newName = otherEdge->name;
   if (newName == 0 || strlen(newName) == 0) {
-    //SPDLOG_INFO("not naming edge {}:{}:no name", edgeNdx, edges[pairNum]);
+    //SPDLOG_INFO("not naming edge {}:{}:no name", edgeNdx, nodeEdges[pairNum]);
     return false;
   }
 
@@ -513,9 +513,9 @@ void chainRenameEdge(item edgeNdx, bool followCorners) {
       item end = cursor->ends[0] == lastEnd ? 1 : 0;
       item nodeNdx = cursor->ends[end];
       Node* node = getNode(nodeNdx);
-      vector<item> edges = node->edges.toVector();
-      item oddManOut = getOddManOut(nodeNdx, edges);
-      int numEdges = edges.size();
+      vector<item> chainEdges = node->edges.toVector();
+      item oddManOut = getOddManOut(nodeNdx, chainEdges);
+      int numEdges = chainEdges.size();
       if (numEdges <= 1) {
         break;
       }
@@ -523,7 +523,7 @@ void chainRenameEdge(item edgeNdx, bool followCorners) {
       //Get itemInNode, and build names item
       item itemInNode = -1;
       for (int i = 0; i < numEdges; i++) {
-        if (edges[i] == cursorNdx) {
+        if (chainEdges[i] == cursorNdx) {
           itemInNode = i;
           break;
         }
@@ -540,7 +540,7 @@ void chainRenameEdge(item edgeNdx, bool followCorners) {
       }
 
       //Consider name
-      item otherNdx = edges[pairNum];
+      item otherNdx = chainEdges[pairNum];
       Edge* other = getEdge(otherNdx);
 
       if (!followCorners) {
@@ -864,13 +864,13 @@ void resizeNode(item ndx) {
   Node* node = getNode(ndx);
 
   float newSize = minIntersectionSize;
-  vector<item> edges = getRenderableEdges(ndx);
-  int numEdges = edges.size();
+  vector<item> renderableEdges = getRenderableEdges(ndx);
+  int numEdges = renderableEdges.size();
   int numLanes = 0;
   int numRail = 0;
   for(int i = 0; i < numEdges; i ++) {
-    Edge* edge = getEdge(edges[i]);
-    float width = edgeWidth(edges[i]);
+    Edge* edge = getEdge(renderableEdges[i]);
+    float width = edgeWidth(renderableEdges[i]);
     numLanes += edge->config.numLanes;
     if (width > newSize) {
       newSize = width;
@@ -1159,7 +1159,7 @@ vector<item> findCollisions(item ndx) {
     handleError("findCollisions(0)");
   }
 
-  //for (int i = -nodes->size(); i <= edges->size(); i ++) {
+  //for (int i = -splitNodes->size(); i <= edges->size(); i ++) {
   Box bbox = getInflatedGraphBox(ndx);
   vector<item> boxCollisions = getCollisions(GraphCollisions, bbox, 0);
   for (int k = 0; k < boxCollisions.size(); k++) {
@@ -1446,12 +1446,12 @@ bool split(item ndx, Configuration nodeConfig, bool doComplete) {
     */
 
     float eWidth = edgeWidth(ndx);
-    vector<item> nodes;
+    vector<item> splitNodesList;
     Configuration edgeConfig = edge->config;
     vec3 end0 = getNode(edge->ends[0])->center;
     Line edgeLine = edge->line;
-    nodes.push_back(edge->ends[0]);
-    nodes.push_back(edge->ends[1]);
+    splitNodesList.push_back(edge->ends[0]);
+    splitNodesList.push_back(edge->ends[1]);
     bool wasSet = true;
     if (edge->plan) {
       Plan* p = getPlan(edge->plan);
@@ -1462,7 +1462,7 @@ bool split(item ndx, Configuration nodeConfig, bool doComplete) {
 
     for (int i= 0; i < collisions.size(); i ++) {
       if (collisions[i] < 0) {
-        nodes.push_back(collisions[i]);
+        splitNodesList.push_back(collisions[i]);
 
       } else if (collisions[i] > 0) {
         Edge* e = getEdge(collisions[i]);
@@ -1472,30 +1472,30 @@ bool split(item ndx, Configuration nodeConfig, bool doComplete) {
           float cWidth = edgeWidth(collisions[i]);
           float mWidth = cWidth + eWidth + tileSize;
           if (length(poi-collLine.start) < mWidth) {
-            nodes.push_back(e->ends[0]);
+            splitNodesList.push_back(e->ends[0]);
           } else if (length(poi-collLine.end) < mWidth) {
-            nodes.push_back(e->ends[1]);
+            splitNodesList.push_back(e->ends[1]);
           } else {
-            nodes.push_back(getOrCreateNodeAt(poi, nodeConfig));
+            splitNodesList.push_back(getOrCreateNodeAt(poi, nodeConfig));
           }
         }
       }
     }
 
-    sort(nodes.begin(), nodes.end(), sort_distances(end0));
+    sort(splitNodesList.begin(), splitNodesList.end(), sort_distances(end0));
     //De-dupe
-    for (int i = 0; i < nodes.size()-1; i++) {
-      if (nodes[i] == nodes[i+1]) {
-        nodes.erase(nodes.begin()+i);
+    for (int i = 0; i < splitNodesList.size()-1; i++) {
+      if (splitNodesList[i] == splitNodesList[i+1]) {
+        splitNodesList.erase(splitNodesList.begin()+i);
         i --;
       }
     }
 
     // Split for length
-    int nodesSizePreLengthSplit = nodes.size();
-    for (int i = 0; i < nodesSizePreLengthSplit-1; i++) {
-      Node* n0 = getNode(nodes[i]);
-      Node* n1 = getNode(nodes[i+1]);
+    int splitNodesSizePreLengthSplit = splitNodesList.size();
+    for (int i = 0; i < splitNodesSizePreLengthSplit-1; i++) {
+      Node* n0 = getNode(splitNodesList[i]);
+      Node* n1 = getNode(splitNodesList[i+1]);
       if (n0->pillar != 0 || n1->pillar != 0) continue;
       //if ((n0->flags & _graphCity) || (n1->flags & _graphCity)) continue;
       vec3 c0 = n0->center;
@@ -1506,22 +1506,22 @@ bool split(item ndx, Configuration nodeConfig, bool doComplete) {
         vec2 normed = vec2(point)/getMapSize();
         if (normed.x < 0 || normed.x > 1 ||
           normed.y < 0 || normed.y > 1) continue;
-        nodes.push_back(getOrCreateNodeAt(splits[j], nodeConfig));
+        splitNodesList.push_back(getOrCreateNodeAt(splits[j], nodeConfig));
       }
     }
 
-    sort(nodes.begin(), nodes.end(), sort_distances(end0));
+    sort(splitNodesList.begin(), splitNodesList.end(), sort_distances(end0));
     //De-dupe
-    for (int i = 0; i < nodes.size()-1; i++) {
-      if (nodes[i] == nodes[i+1]) {
-        nodes.erase(nodes.begin()+i);
+    for (int i = 0; i < splitNodesList.size()-1; i++) {
+      if (splitNodesList[i] == splitNodesList[i+1]) {
+        splitNodesList.erase(splitNodesList.begin()+i);
         i --;
         continue;
       }
-      Node* n0 = getNode(nodes[i]);
-      Node* n1 = getNode(nodes[i+1]);
+      Node* n0 = getNode(splitNodesList[i]);
+      Node* n1 = getNode(splitNodesList[i+1]);
       if (vecDistance(n0->center, n1->center) < 0.001) {
-        nodes.erase(nodes.begin()+i);
+        splitNodesList.erase(splitNodesList.begin()+i);
         i --;
       }
     }
@@ -1529,8 +1529,8 @@ bool split(item ndx, Configuration nodeConfig, bool doComplete) {
     if (!doComplete && isFeatureEnabled(FRoadPillars) &&
         automaticBridgesEnabled) {
       bool doBridge = false;
-      for (int i = 0; i < nodes.size(); i++) {
-        Node* n = getNode(nodes[i]);
+      for (int i = 0; i < splitNodesList.size(); i++) {
+        Node* n = getNode(splitNodesList[i]);
         if (n->edges.size() > 0) continue;
         //if (n->pillar != 0) continue;
         float landZ = pointOnLandNatural(n->center).z;
@@ -1541,8 +1541,8 @@ bool split(item ndx, Configuration nodeConfig, bool doComplete) {
       }
 
       if (doBridge) {
-        for (int i = 0; i < nodes.size(); i++) {
-          Node* n = getNode(nodes[i]);
+        for (int i = 0; i < splitNodesList.size(); i++) {
+          Node* n = getNode(splitNodesList[i]);
           if (n->pillar != 0) continue;
           if (n->edges.size() > 0) continue;
           if (pointOnLandNatural(n->center).z < beachLine-1) {
@@ -1551,14 +1551,14 @@ bool split(item ndx, Configuration nodeConfig, bool doComplete) {
             Pillar* pillar = getPillar(pillarNdx);
             n->pillar = pillarNdx;
             n->center = pillar->location;
-            pillar->node = nodes[i];
+            pillar->node = splitNodesList[i];
           }
         }
       }
     }
 
-    for (int i= 0; i < nodes.size() - 1; i ++) {
-      item newEdge = addEdge(nodes[i], nodes[i+1], edgeConfig);
+    for (int i= 0; i < splitNodesList.size() - 1; i ++) {
+      item newEdge = addEdge(splitNodesList[i], splitNodesList[i+1], edgeConfig);
       if (doComplete && legalMessage(newEdge) == 0) {
         complete(newEdge, false, nodeConfig);
       } else {
@@ -1571,8 +1571,8 @@ bool split(item ndx, Configuration nodeConfig, bool doComplete) {
     }
 
     if (wasSet || doComplete) {
-      for (int i= 0; i < nodes.size(); i ++) {
-        split(nodes[i]);
+      for (int i= 0; i < splitNodesList.size(); i ++) {
+        split(splitNodesList[i]);
       }
     }
 
@@ -1681,7 +1681,7 @@ Configuration getElementConfiguration(item ndx) {
 }
 
 item getNodeAt(vec3 point) {
-  for(int i = 0; i < nodes->size(); i ++) {
+  for(int i = 0; i < splitNodes->size(); i ++) {
     item ndx = -i-1;
     Node* node = getNode(ndx);
     if (!(node->flags & _graphExists)) continue;
@@ -1944,9 +1944,9 @@ void switchDirection(item ndx) {
   if (edge->laneBlocks[0] != 0) {
     removeLaneVehicles(edge->laneBlocks[0]);
     if (edge->laneBlocks[1] != 0) {
-      item swap = edge->laneBlocks[0];
+      item laneSwap = edge->laneBlocks[0];
       edge->laneBlocks[0] = edge->laneBlocks[1];
-      edge->laneBlocks[1] = swap;
+      edge->laneBlocks[1] = laneSwap;
     }
   }
 
@@ -1966,7 +1966,7 @@ void resetGraph() {
   areTunnelsVisible = true;
   completeEdges = 0;
   maxWear = 0;
-  for (int i = -1; i >= -nodes->size(); i--) {
+  for (int i = -1; i >= -splitNodes->size(); i--) {
     Node* node = getNode(i);
     node->edges.clear();
     node->phaseMins.clear();
@@ -1979,11 +1979,11 @@ void resetGraph() {
   }
 
   edges->clear();
-  nodes->clear();
+  splitNodes->clear();
 }
 
 void initGraphEntities() {
-  for (int i = -1; i >= -nodes->size(); i--) {
+  for (int i = -1; i >= -splitNodes->size(); i--) {
     Node* node = getNode(i);
     if (!(node->flags & _graphExists)) {
       continue;
@@ -2030,7 +2030,7 @@ void rerenderGraph() {
   for (int i = 1; i <= edges->size(); i++) {
     renderEdge(i);
   }
-  for (int i = -1; i >= -nodes->size(); i--) {
+  for (int i = -1; i >= -splitNodes->size(); i--) {
     renderNode(i);
   }
   updateGraphVisuals(true);
@@ -2389,7 +2389,7 @@ item nearestEdge(vec3 loc, bool includePlanned, Configuration config) {
 item nearestNode(vec3 location, bool includePlanned) {
   float bestDistance = FLT_MAX;
   item bestIndex = 0;
-  for (int i = 1; i <= nodes->size(); i ++) {
+  for (int i = 1; i <= splitNodes->size(); i ++) {
     Node* node = getNode(-i);
     if (!(node->flags & _graphExists) ||
       (!includePlanned && !(node->flags & _graphOpen))) {
@@ -2407,7 +2407,7 @@ item nearestNode(vec3 location, bool includePlanned) {
 item nearestNode(vec3 location, bool includePlanned, Configuration config) {
   float bestDistance = FLT_MAX;
   item bestIndex = 0;
-  for (int i = 1; i <= nodes->size(); i ++) {
+  for (int i = 1; i <= splitNodes->size(); i ++) {
     Node* node = getNode(-i);
     if (!(node->flags & _graphExists) ||
       (!includePlanned && !(node->flags & _graphOpen))) {
@@ -2427,7 +2427,7 @@ item nearestNode(vec3 location, bool includePlanned, Configuration config) {
 item nearestNode(Line l, bool includePlanned) {
   float bestDistance = FLT_MAX;
   item bestIndex = 0;
-  for (int i = 1; i <= nodes->size(); i ++) {
+  for (int i = 1; i <= splitNodes->size(); i ++) {
     Node* node = getNode(-i);
     if (!(node->flags & _graphExists) ||
       (!includePlanned && !(node->flags & _graphOpen))) {
@@ -2445,7 +2445,7 @@ item nearestNode(Line l, bool includePlanned) {
 item nearestNode(Line l, bool includePlanned, Configuration config) {
   float bestDistance = FLT_MAX;
   item bestIndex = 0;
-  for (int i = 1; i <= nodes->size(); i ++) {
+  for (int i = 1; i <= splitNodes->size(); i ++) {
     Node* node = getNode(-i);
     if (!(node->flags & _graphExists) ||
       (!includePlanned && !(node->flags & _graphOpen))) {
@@ -2652,9 +2652,9 @@ void repairEdge(item ndx) {
 char* graphElementName(item ndx) {
   if (ndx < 0) {
     Node* node = getNode(ndx);
-    int edges = getRenderableEdges(ndx).size();
+    int numEdges = getRenderableEdges(ndx).size();
     if (node->config.type == ConfigTypeExpressway) {
-      if (edges == 1) {
+      if (numEdges == 1) {
         if (getGameMode() == ModeTest) {
           return strdup_s("Spawn Point");
         } else {
@@ -2664,7 +2664,7 @@ char* graphElementName(item ndx) {
         return strdup_s("Junction");
       }
     }
-    switch (edges) {
+    switch (numEdges) {
       case 0: return strdup_s("Disconnected Node");
       case 1:
         if (getGameMode() == ModeTest) {
@@ -2731,7 +2731,7 @@ void setTunnelsVisible() {
   bool viz = !isUndergroundView();
   if (viz != areTunnelsVisible) {
     areTunnelsVisible = viz;
-    for (int i = 1; i <= nodes->size(); i++) {
+    for (int i = 1; i <= splitNodes->size(); i++) {
       Node* n = getNode(-i);
       if ((n->flags & _graphExists) && n->tunnelEntity != 0) {
         setEntityVisible(n->tunnelEntity, viz);
@@ -2748,14 +2748,14 @@ void setTunnelsVisible() {
 
 void updateGraphVisuals(bool firstPass) {
   int numEdges = edges->size();
-  int numNodes = nodes->size();
+  int numNodes = splitNodes->size();
   int numElem = numEdges + numNodes;
   int numToUpdate = firstPass ? numElem+2 : numElem / c(CHeatMapTime);
   int numUpdated = 0;
   if (firstPass) lastVisualUpdate = -numNodes;
   bool night = getLightLevel() < 0.5;
 
-  for (int numUpdated = 0; numUpdated < numToUpdate; numUpdated++) {
+  for (int updateCount = 0; updateCount < numToUpdate; updateCount++) {
     if (lastVisualUpdate > numEdges || lastVisualUpdate < -numNodes) {
       lastVisualUpdate = -numNodes;
     }
@@ -2898,7 +2898,7 @@ void rebuildRoadStats() {
   resetStat(PavementMSq);
   resetStat(RoadSystemValue);
 
-  for (int i = 1; i <= nodes->size(); i++) {
+  for (int i = 1; i <= splitNodes->size(); i++) {
     Node* n = getNode(-i);
     if (n->flags & _graphExists && n->flags & _graphComplete) {
       adjustGraphStats(-i, 1);
@@ -3004,8 +3004,8 @@ void readEdge(FileBuffer* file, int version, item ndx) {
 }
 
 void writeGraph(FileBuffer* file) {
-  nodes->write(file);
-  for (int i = 1; i <= nodes->size(); i++) {
+  splitNodes->write(file);
+  for (int i = 1; i <= splitNodes->size(); i++) {
     writeNode(file, -i);
   }
 
@@ -3016,8 +3016,8 @@ void writeGraph(FileBuffer* file) {
 }
 
 void readGraph(FileBuffer* file, int version) {
-  nodes->read(file, version);
-  for (int i = 1; i <= nodes->size(); i++) {
+  splitNodes->read(file, version);
+  for (int i = 1; i <= splitNodes->size(); i++) {
     readNode(file, version, -i);
   }
 

@@ -128,10 +128,10 @@ void adjustBizStats(item ndx, float mult) {
     Position p = b->positions[i];
     EducationLevel edu = p.minEducation;
     adjustStat(econ, NumPositions, mult);
-    adjustStat(econ, (Statistic)(NumNoEduPositions+edu), mult);
+    adjustStat(econ, (Statistic)(NumNoEduPositions+(int)edu), mult);
     if (p.employee == 0) {
       adjustStat(econ, NumOpenPositions, mult);
-      adjustStat(econ, (Statistic)(NumOpenNoEduPositions+edu), mult);
+      adjustStat(econ, (Statistic)(NumOpenNoEduPositions+(int)edu), mult);
     }
   }
 }
@@ -510,7 +510,7 @@ void updateBusiness(item ndx, float duration, vec3 loc) {
       prosperityPenalty += c(CUnfilledPositionProsperity) / b->positions.size();
       stress += c(CUnfilledPositionStress) / b->positions.size();
       supplyTableSuggest_g(building->graphLoc.lane,
-          (Supply)(SuppliesNoEduJob + pos.minEducation), ndx);
+          (Supply)(SuppliesNoEduJob + (int)pos.minEducation), ndx);
 
     } else {
       Person* p = getPerson(pNdx);
@@ -990,7 +990,7 @@ void employeeHired(item businessNdx, item personNdx) {
     p->employer = businessNdx;
     adjustPersonStats(personNdx, 1);
     item econ = getBusinessEcon(businessNdx);
-    adjustStat(econ, (Statistic)(NumOpenNoEduPositions+bestPosEdu), -1);
+    adjustStat(econ, (Statistic)(NumOpenNoEduPositions+(int)bestPosEdu), -1);
     adjustStat(econ, NumOpenPositions, -1);
   }
 
@@ -1018,7 +1018,7 @@ void employeeQuit(item personNdx) {
       pos.employee = 0;
       b->positions[i] = pos;
       //postPosition(bussNdx, pos);
-      adjustStat(econ, (Statistic)(NumOpenNoEduPositions+pos.minEducation), 1);
+      adjustStat(econ, (Statistic)(NumOpenNoEduPositions+(int)pos.minEducation), 1);
       adjustStat(econ, NumOpenPositions, 1);
     }
   }

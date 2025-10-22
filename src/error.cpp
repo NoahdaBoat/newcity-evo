@@ -70,7 +70,9 @@
 #endif
 //#define BOOST_STACKTRACE_USE_BACKTRACE
 
+#ifndef BOOST_NO_EXCEPTIONS
 #define BOOST_NO_EXCEPTIONS
+#endif
 #include <boost/throw_exception.hpp>
 #ifdef _WIN32
   void __cdecl boost::throw_exception(std::exception const & e){

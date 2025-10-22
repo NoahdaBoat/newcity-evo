@@ -87,7 +87,7 @@ bool setTaxRate(Part* part, InputEvent event) {
   BudgetLine tax = (BudgetLine)part->itemData;
   float value = int(part->vecData.x*20)/20.f*maxTaxRate[tax];
   setTaxRate(tax, value);
-  stopBlinkingFeature(FPropertyTax+tax-1);
+  stopBlinkingFeature(FPropertyTax+(int)tax-1);
   reportTutorialUpdate(TutorialUpdateCode::UpdatedBudgetTax);
   return true;
 }

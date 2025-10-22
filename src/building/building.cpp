@@ -892,7 +892,7 @@ void removeBusinessFromTenancy(item buildingNdx, item businessNdx) {
   for (int i = building->businesses.size() - 1; i >= 0; i--) {
     if (building->businesses[i] == businessNdx) {
       building->businesses.erase(building->businesses.begin() + i);
-      boardPut(building->econ, RetailTenancies+bType, buildingNdx);
+      boardPut(building->econ, RetailTenancies+(int)bType, buildingNdx);
     }
   }
 }

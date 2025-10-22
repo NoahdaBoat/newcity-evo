@@ -41,7 +41,7 @@ void buildingPanel(Part* result, Building* b) {
 
   Design* d = getDesign(b->design);
   float y = 0;
-  float scrollBoxTop = 8;
+  float panelScrollBoxTop = 8;
   vec3 ico = iconZoneMono[d->zone];
   char* name = b->name != 0 ? strdup_s(b->name) :
     d->zone == GovernmentZone ? strdup_s(d->displayName) :
@@ -231,10 +231,10 @@ void buildingPanel(Part* result, Building* b) {
 
     float hmBase = 2.6f;
     float hmPad = 0.1f;
-    float hmWidth = numHeatMaps*1.1f+.2f;
+    float hmWidth = (int)numHeatMaps*1.1f+.2f;
     Part* heatmapPanel = panel(
         vec2((ipWidth-hmWidth)*.5f, y),
-        vec2(numHeatMaps*1.1f+.2f, hmBase + 1.3f));
+        vec2((int)numHeatMaps*1.1f+.2f, hmBase + 1.3f));
     heatmapPanel->padding = hmPad;
     heatmapPanel->flags |= _partLowered;
 
@@ -260,11 +260,11 @@ void buildingPanel(Part* result, Building* b) {
       for (int j = 0; j < hmValI && j < 10; j++) {
         //float tileSize = 1.f;//(j+1 >= value) ? 1.f : (value - j);
         //float tileSize = std::clamp(value - j, 0.f, 1.f);
-        float tileSize = 1.f;
-        tileSize *= .5f;
+        float heatmapTileSize = 1.f;
+        heatmapTileSize *= .5f;
         r(hmButt, icon(
-            vec2(0.0f+(j%2)*.5, hmBase - (j/2+1)*.5 + .5-tileSize),
-            vec2(.5, tileSize), iconHeatmapColor[i]));
+            vec2(0.0f+(j%2)*.5, hmBase - (j/2+1)*.5 + .5-heatmapTileSize),
+            vec2(.5, heatmapTileSize), iconHeatmapColor[i]));
       }
 
       r(heatmapPanel, hmButt);
@@ -419,20 +419,20 @@ void buildingPanel(Part* result, Building* b) {
     r(result, inner);
     y = 0;
 
-    float x = 0;
-    r(inner, labelRight(vec2(x, y), vec2(scl,scl),
+    float innerX = 0;
+    r(inner, labelRight(vec2(innerX, y), vec2(scl,scl),
           sprintf_o("%d", b->peopleInside.size())));
-    r(inner, icon(vec2(x+scl, y), vec2(scl,scl), iconPersonMan));
-    x+=2;
+    r(inner, icon(vec2(innerX+scl, y), vec2(scl,scl), iconPersonMan));
+    innerX+=2;
 
     item numHomes = getDesignNumHomes(b->design);
     item numFams = b->families.size();
     if (numHomes > 0 || numFams > 0) {
-      r(inner, labelRight(vec2(x, y), vec2(scl*3,scl),
+      r(inner, labelRight(vec2(innerX, y), vec2(scl*3,scl),
             sprintf_o("%d/%d", numFams, numHomes)));
-      r(inner, icon(vec2(x+scl*3, y), vec2(scl,scl),
+      r(inner, icon(vec2(innerX+scl*3, y), vec2(scl,scl),
             isHotel ? iconHotelRoom : iconFamily));
-      x+=4*scl;
+      innerX+=4*scl;
     }
 
     int numBiz[5] = {0,0,0,0,0};
@@ -471,7 +471,7 @@ void legacyBuildingPanel(Part* result, Building* selection) {
 //void buildingPanel(Part* result, Building* selection) {
   Design* d = getDesign(selection->design);
   float y = 0;
-  float scrollBoxTop = 8;
+  float legacyScrollBoxTop = 8;
   vec3 ico = iconZoneMono[selection->zone];
   char* name = selection->name != 0 ? strdup_s(selection->name) :
     selection->zone == GovernmentZone ? strdup_s(d->displayName) :
@@ -658,9 +658,9 @@ void legacyBuildingPanel(Part* result, Building* selection) {
     */
   }
 
-  scrollBoxTop = y + 4;
-  y = scrollBoxTop-1.1;
-  float ixs = (spWidth-numHeatMaps*1.1f-.3f)/3.5;
+  legacyScrollBoxTop = y + 4;
+  y = legacyScrollBoxTop-1.1;
+  float ixs = (spWidth-(int)numHeatMaps*1.1f-.3f)/3.5;
   float ix = ixs*.25f;
   float iys = 1.f;
   float tys = .7f;
@@ -695,8 +695,8 @@ void legacyBuildingPanel(Part* result, Building* selection) {
   float hmBase = 2.6f;
   float hmPad = 0.1f;
   Part* heatmapPanel = panel(
-      vec2(spWidth-numHeatMaps*1.1f-.2f, scrollBoxTop-hmBase-1.4f),
-      vec2(numHeatMaps*1.1f+.2f, hmBase + 1.3f));
+      vec2(spWidth-(int)numHeatMaps*1.1f-.2f, legacyScrollBoxTop-hmBase-1.4f),
+      vec2((int)numHeatMaps*1.1f+.2f, hmBase + 1.3f));
   heatmapPanel->padding = hmPad;
   heatmapPanel->flags |= _partLowered;
 
@@ -721,11 +721,11 @@ void legacyBuildingPanel(Part* result, Building* selection) {
     for (int j = 0; j <= value && j < 10; j++) {
       //float tileSize = 1.f;//(j+1 >= value) ? 1.f : (value - j);
       //float tileSize = std::clamp(value - j, 0.f, 1.f);
-      float tileSize = 1.f;
-      tileSize *= .5f;
+      float legacyTileSize = 1.f;
+      legacyTileSize *= .5f;
       r(hmButt, icon(
-          vec2(0.0f+(j%2)*.5, hmBase - (j/2+1)*.5 + .5-tileSize),
-          vec2(.5, tileSize), iconHeatmapColor[i]));
+          vec2(0.0f+(j%2)*.5, hmBase - (j/2+1)*.5 + .5-legacyTileSize),
+          vec2(.5, legacyTileSize), iconHeatmapColor[i]));
     }
 
     r(heatmapPanel, hmButt);
@@ -737,7 +737,7 @@ void legacyBuildingPanel(Part* result, Building* selection) {
     freePart(heatmapPanel);
   }
 
-  r(result, objectList(vec2(0,scrollBoxTop),
-        vec2(spWidth,spHeight-scrollBoxTop),
+  r(result, objectList(vec2(0,legacyScrollBoxTop),
+        vec2(spWidth,spHeight-legacyScrollBoxTop),
     &selection->businesses, &selection->families, &selection->peopleInside));
 }

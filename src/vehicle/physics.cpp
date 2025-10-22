@@ -1111,7 +1111,7 @@ void swapVehiclePhysicsBack() {
   }
 }
 
-void validatePhysicalVehicles(char* msg) {
+void validatePhysicalVehicles(const char* msg) {
   for (int i = 1; i < vFlags.size(); i++) {
     uint32_t flags = vFlags[i];
     bool transit = flags & _vehicleIsTransit;
@@ -1148,7 +1148,7 @@ void validatePhysicalVehicles(char* msg) {
   }
 }
 
-void validateSwapPhysicalVehicles(char* msg) {
+void validateSwapPhysicalVehicles(const char* msg) {
   for (int i = 1; i < vFlags.size(); i++) {
     Vehicle* v = getVehicle(i);
     uint32_t flags = vFlags[i];
