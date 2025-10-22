@@ -76,8 +76,8 @@ Part* textSpan(vec2 start, float indent, vec2 size, char* text, vec2* end,
           currentLine = next;
         } else {
           rtrim(currentLine);
-          vec2 size = vec2(xSizeLine - cursor.x, ySizeLine);
-          r(result, spanLine(cursor, size, currentLine, center));
+          vec2 lineSize = vec2(xSizeLine - cursor.x, ySizeLine);
+          r(result, spanLine(cursor, lineSize, currentLine, center));
           currentLine = subWordToken;
           cursor.x = indent;
           cursor.y += lineSpacing;
@@ -90,8 +90,8 @@ Part* textSpan(vec2 start, float indent, vec2 size, char* text, vec2* end,
     }
 
     if (currentLine.length() > 0) {
-      vec2 size = vec2(xSizeLine - cursor.x, ySizeLine);
-      r(result, spanLine(cursor, size, currentLine, center));
+      vec2 finalSize = vec2(xSizeLine - cursor.x, ySizeLine);
+      r(result, spanLine(cursor, finalSize, currentLine, center));
       currentLine = "";
       cursor.x = indent;
       cursor.y += lineSpacing;

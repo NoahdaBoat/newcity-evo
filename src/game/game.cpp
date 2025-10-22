@@ -448,8 +448,8 @@ bool readHeader(FileBuffer* file) {
   }
 
   if (version >= 13) {
-    item gameMode = fread_item(file, version);
-    //SPDLOG_INFO("gamemode {}", gameMode);
+    item loadedGameMode = fread_item(file, version);
+    //SPDLOG_INFO("gamemode {}", loadedGameMode);
   }
 
   if (version >= 14) {

@@ -476,7 +476,7 @@ void subtransaction(Budget* b, BudgetLine line, money amount) {
     if (!(flags & _budgetNotAggregate)) {
       bool inverted = line != Cashflow && !(flags & _budgetIsIncome);
       float statAmount = inverted ? -amount : amount;
-      adjustStat(ourCityEconNdx(), PropertyTaxStat + line - 1, statAmount);
+      adjustStat(ourCityEconNdx(), PropertyTaxStat + (int)line - 1, statAmount);
     }
   }
 }

@@ -359,9 +359,9 @@ void initLogging() {
       forceLogUpload = true;
 
     } else {
-      FILE *file;
-      if (file = fopen(sentinelFilename, "wb")) {
-        fclose(file);
+      FILE *sentinelFile;
+      if (sentinelFile = fopen(sentinelFilename, "wb")) {
+        fclose(sentinelFile);
         SPDLOG_INFO("Wrote sentinel file");
       } else {
         SPDLOG_ERROR("Failed to write sentinel file");

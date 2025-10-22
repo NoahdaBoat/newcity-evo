@@ -700,12 +700,12 @@ void heatMapLoop() {
       return !shouldContinueHeatMaps ||
         (!heatMapUpdated[hmUpdateNum] &&
          heatMapsReady &&
-         durationRemaining >= c(CHeatMapTime)/numHeatMaps);
+         durationRemaining >= c(CHeatMapTime)/(int)numHeatMaps);
     });
     if (!shouldContinueHeatMaps) {
       return;
     }
-    durationRemaining -= c(CHeatMapTime)/numHeatMaps;
+    durationRemaining -= c(CHeatMapTime)/(int)numHeatMaps;
     for (int i = 0; i < numHeatMaps; i++) {
       hmAdjustment[i] = nextHmAdjustment[i];
     }

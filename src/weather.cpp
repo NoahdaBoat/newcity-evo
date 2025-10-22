@@ -286,20 +286,20 @@ vec3 getRainPos() {
   return percipitationPos;
 }
 
-WeatherIcon getWeatherIcon(Weather w) {
-  if (w.percipitation > 0.15 && w.temp < snowTemp) {
+WeatherIcon getWeatherIcon(Weather weather) {
+  if (weather.percipitation > 0.15 && weather.temp < snowTemp) {
     return WeatherSnow;
-  } else if (w.clouds > 0.7) {
+  } else if (weather.clouds > 0.7) {
     return WeatherLightning;
-  } else if (w.percipitation > 0.15) {
+  } else if (weather.percipitation > 0.15) {
     return WeatherRain;
-  } else if (w.clouds > 0.2) {
+  } else if (weather.clouds > 0.2) {
     return WeatherCloudy;
   } else if (getLightLevel() < 0.3) {
     return WeatherMoon;
-  } else if (w.temp > 30) {
+  } else if (weather.temp > 30) {
     return WeatherSun;
-  } else if (w.temp < 0) {
+  } else if (weather.temp < 0) {
     return WeatherCold;
   } else {
     return WeatherNull;

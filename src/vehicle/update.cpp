@@ -71,7 +71,7 @@ double getVehicleTime() {
   return vehicleTime;
 }
 
-void validateSwapVehicles(char* msg) {
+void validateSwapVehicles(const char* msg) {
   validateVehicles(msg);
   validatePhysicalVehicles(msg);
   validateSwapPhysicalVehicles(msg);

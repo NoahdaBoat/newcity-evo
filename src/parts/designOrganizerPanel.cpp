@@ -126,12 +126,12 @@ Part* designOrganizerPanel() {
     bool isGov = d->zone == GovernmentZone;
     bool isEdu = isDesignEducation(b->design);
     bool isHotel = d->flags & _designIsHotel;
-    vec2 dpSize = vec2(dcpWidth*.5f-2,dcpScale + 0.7);
-    vec2 zbSize = vec2(dcpWidth*.5f,dcpScale);
+    vec2 designPanelSize = vec2(dcpWidth*.5f-2,dcpScale + 0.7);
+    vec2 zoneButtonSize = vec2(dcpWidth*.5f,dcpScale);
 
     for (int param = DPMinYear; param <= DPBiz3; param++) {
       bool odd = ((param-DPMinYear) % 2);
-      float x = odd * (dpSize.x+2);
+      float x = odd * (designPanelSize.x+2);
 
       vec3 ico = designParameterIcon[param];
       if (isEdu&& param >= DPHomes) ico = universityIcons[param-DPHomes];

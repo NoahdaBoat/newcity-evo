@@ -146,7 +146,7 @@ float scoreInterview(item ndx) {
   score += c(CInterviewLightFactor)*getLightLevel();
   float timeSinceWork = getCurrentDateTime() - f->lastWorkTime;
   score += timeSinceWork * c(CInterviewTimeSince);
-  score += getEducationForPerson(ndx) * c(CInterviewEducation);
+  score += (int)getEducationForPerson(ndx) * c(CInterviewEducation);
   if (person->activity == InterviewActivity) {
     score += activityInertia(person, CInterviewInertiaA,
         CInterviewInertiaB, CInterviewInertiaC, energy);

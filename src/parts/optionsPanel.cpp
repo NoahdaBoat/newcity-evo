@@ -764,7 +764,7 @@ Part* optionsPanel(float aspectRatio) {
     y += scale+optionsPad;
 
     Part* keymapScrollbox = scrollbox(vec2(0, 0),
-      vec2(keymapWidth, (InputAction::NumActions+InputGroup::NumInputGroups)*bindHeight));
+      vec2(keymapWidth, ((int)InputAction::NumActions+(int)InputGroup::NumInputGroups)*bindHeight));
     keymapScrollbox->flags |= _partLowered;
 
     // Check for changing action, and check for key if changing

@@ -151,10 +151,10 @@ void llValidate(item llNdx) {
       }
 
       if (ll.ahead != 0) {
-        LaneLoc ahead = laneLocs[ll.ahead];
-        if (ahead.behind != llNdx) {
+        LaneLoc aheadLoc = laneLocs[ll.ahead];
+        if (aheadLoc.behind != llNdx) {
           SPDLOG_ERROR("llValidate: {} ahead=={} but {} behind=={}",
-              llNdx, ll.ahead, ll.ahead, ahead.behind);
+              llNdx, ll.ahead, ll.ahead, aheadLoc.behind);
           selectAndPauseBack(llNdx/llnum); //, "Bad vehicle ahead");
 
         }

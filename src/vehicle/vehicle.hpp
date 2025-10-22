@@ -82,7 +82,7 @@ void selectVehicleAndPause(item ndx);
 void repairVehicleDestinationLane(item ndx);
 void rerouteVehicle(item ndx);
 void invalidateVehicleRoute(item ndx);
-void validateVehicles(char* msg);
+void validateVehicles(const char* msg);
 bool isVehicleActive_g(item ndx);
 void setVehicleActive_g(item ndx);
 vec3 getVehicleCenter_g(item ndx);

@@ -4,7 +4,10 @@
 #include "spdlog/spdlog.h"
 
 #define STB_IMAGE_IMPLEMENTATION
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include "stb_image.h"
+#pragma GCC diagnostic pop
 
 unsigned char* loadImage(const char* filename,
     int* x, int* y, int* n, int d) {

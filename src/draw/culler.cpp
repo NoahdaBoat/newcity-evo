@@ -147,7 +147,7 @@ void updateAllEntitiesInCuller_c() {
 
 void updateEntityCuller_g() {
   int numUpdates = 0; //numEntities; //toUpdateInCuller.size();
-  float startTime = glfwGetTime();
+  float cullerStartTime = glfwGetTime();
 
   item num = numEntities;
   if (num <= entitiesSize()) {
@@ -184,7 +184,7 @@ void updateEntityCuller_g() {
 }
 
 void selectMeshes_c(Cull cull) {
-  float startTime = glfwGetTime();
+  float meshStartTime = glfwGetTime();
   item num = numEntities;
   boost::dynamic_bitset<> eShow = eActive;
   boost::dynamic_bitset<> eTest = eActive;

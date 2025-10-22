@@ -89,7 +89,7 @@ std::unordered_map<GLuint, unsigned char> debugCallbackCount;
 void setWindowState();
 
 #ifndef _WIN32
-__attribute__((stdcall)) void debugCallback(
+void debugCallback(
     GLenum source, GLenum type, GLuint id, GLenum severity,
     GLsizei length, const GLchar *msg, const void *data ) {
 
@@ -231,10 +231,10 @@ void scrollCamera(InputEvent event) {
   }
 }
 
-void setWindowSize(GLFWwindow* window, int width, int height) {
+void setWindowSize(GLFWwindow* windowPtr, int width, int height) {
   SPDLOG_INFO("Window resized to {}x{} (Aspect Ratio: {})",
       width, height, width*1.0/height);
-  //glfwSetWindowSize(window, width, height);
+  //glfwSetWindowSize(windowPtr, width, height);
 }
 
 WindowMode getWindowMode() {
@@ -257,30 +257,30 @@ Plane::Plane(vec3 p, vec3 n) {
   D = -dot(norm, pt);
 }
 
-void computeCameraMatricies(Camera* camera, vec3 mirror, float angle,
+void computeCameraMatricies(Camera* cameraPtr, vec3 mirror, float angle,
     bool doOrtho) {
 
-  dvec3 camDir = -normalize(camera->direction);
+  dvec3 camDir = -normalize(cameraPtr->direction);
   dvec3 camX = normalize(cross(dvec3(0.0f, 0.0f, 1.0f), camDir));
   dvec3 camUp = -normalize(cross(camDir, camX));
-  camUp = rotate(camUp, camera->roll, camera->direction);
+  camUp = rotate(camUp, cameraPtr->roll, cameraPtr->direction);
 
-  //dvec3 up = camera->direction + dvec3(0,0,1);
-  double effectiveDistance = camera->distance;
+  //dvec3 up = cameraPtr->direction + dvec3(0,0,1);
+  double effectiveDistance = cameraPtr->distance;
   if (fov <= 0) {
     doOrtho = true;
   } else if (!doOrtho) {
-    effectiveDistance = camera->distance / fov * (2/3.f);
+    effectiveDistance = cameraPtr->distance / fov * (2/3.f);
   }
 
-  camera->position = camera->target -
-    dvec3(camera->direction)*effectiveDistance;
-  camera->ray = line(camera->position, camera->target);
-  float aspectFactor = camera->aspectRatio/std::min(0.5, cos(camera->pitch));
+  cameraPtr->position = cameraPtr->target -
+    dvec3(cameraPtr->direction)*effectiveDistance;
+  cameraPtr->ray = line(cameraPtr->position, cameraPtr->target);
+  float aspectFactor = cameraPtr->aspectRatio/std::min(0.5, cos(cameraPtr->pitch));
 
-  camera->view = lookAt(
-    camera->position,
-    camera->target,
+  cameraPtr->view = lookAt(
+    cameraPtr->position,
+    cameraPtr->target,
     -camUp
   );
 
@@ -288,13 +288,13 @@ void computeCameraMatricies(Camera* camera, vec3 mirror, float angle,
   float camFarDist = 0.0f;
 
   if (doOrtho) {
-    float planeDist = (effectiveDistance + camera->target.z)*aspectFactor;
+    float planeDist = (effectiveDistance + cameraPtr->target.z)*aspectFactor;
     camNearDist = float(-planeDist * 2);
     camFarDist = float(planeDist*aspectFactor);
-    camera->projection = scale(
+    cameraPtr->projection = scale(
       ortho(
-        -camera->projSize.x, camera->projSize.x,
-        -camera->projSize.y, camera->projSize.y,
+        -cameraPtr->projSize.x, cameraPtr->projSize.x,
+        -cameraPtr->projSize.y, cameraPtr->projSize.y,
         camNearDist,
         camFarDist
       ), mirror);
@@ -302,8 +302,8 @@ void computeCameraMatricies(Camera* camera, vec3 mirror, float angle,
   } else {
     camNearDist = std::max(float(effectiveDistance*.1), 5.f);
     camFarDist = std::max(float(effectiveDistance*20.f), 20000.f);
-    camera->projection = scale( perspective(pi_o*fov, // FoV in radians
-        camera->aspectRatio,
+    cameraPtr->projection = scale( perspective(pi_o*fov, // FoV in radians
+        cameraPtr->aspectRatio,
         camNearDist,
         camFarDist
     ), mirror);
@@ -311,9 +311,9 @@ void computeCameraMatricies(Camera* camera, vec3 mirror, float angle,
 
   // Calculate view frustum
   float aspectRatio = getAspectRatio();
-  Frustum* frustum = &camera->viewFrustum;
-  vec3 camPos = camera->position;
-  //vec3 camDir = -normalize(camera->direction);
+  Frustum* frustum = &cameraPtr->viewFrustum;
+  vec3 camPos = cameraPtr->position;
+  //vec3 camDir = -normalize(cameraPtr->direction);
   //vec3 camX = normalize(cross(vec3(0.0f, 0.0f, 1.0f), camDir));
   //vec3 camUp = -normalize(cross(camDir, camX));
   float hNear = 0.0f;
@@ -343,37 +343,37 @@ void computeCameraMatricies(Camera* camera, vec3 mirror, float angle,
 
   // Near plane
   cNear = camPos + (vec3(camDir) * camNearDist);
-  camera->viewFrustum.planes[FrustumPlanes::NEARP] =
+  cameraPtr->viewFrustum.planes[FrustumPlanes::NEARP] =
     Plane(cNear, doOrtho ? vec3(camDir) : -vec3(camDir));
 
   // Far plane
   cFar = camPos + (vec3(camDir) * camFarDist);
-  camera->viewFrustum.planes[FrustumPlanes::FARP] =
+  cameraPtr->viewFrustum.planes[FrustumPlanes::FARP] =
     Plane(cFar, doOrtho ? -vec3(camDir) : -vec3(camDir));
 
   // Top Plane
   cTop = cFar + (vec3(camUp) * hFar);
   normDir = normalize(cTop - camPos);
   normal = doOrtho ? -vec3(camUp) : -cross(normDir, vec3(camX));
-  camera->viewFrustum.planes[FrustumPlanes::TOP] = Plane(cTop, normal);
+  cameraPtr->viewFrustum.planes[FrustumPlanes::TOP] = Plane(cTop, normal);
 
   // Right Plane
   cRight = cFar + (vec3(camX) * wFar);
   normDir = normalize(cRight - camPos);
   normal = doOrtho ? -vec3(camX) : -cross(vec3(camUp), normDir);
-  camera->viewFrustum.planes[FrustumPlanes::RIGHT] = Plane(cRight, normal);
+  cameraPtr->viewFrustum.planes[FrustumPlanes::RIGHT] = Plane(cRight, normal);
 
   // Bottom Plane
   cBottom = cFar - (vec3(camUp) * hFar);
   normDir = normalize(cBottom - camPos);
   normal = doOrtho ? vec3(camUp) : -cross(vec3(camX), normDir);
-  camera->viewFrustum.planes[FrustumPlanes::BOTTOM] = Plane(cBottom, normal);
+  cameraPtr->viewFrustum.planes[FrustumPlanes::BOTTOM] = Plane(cBottom, normal);
 
   // Left Plane
   cLeft = cFar - (vec3(camX) * wFar);
   normDir = normalize(cLeft - camPos);
   normal = doOrtho ? vec3(camX) : -cross(normDir, vec3(camUp));
-  camera->viewFrustum.planes[FrustumPlanes::LEFT] = Plane(cLeft, normal);
+  cameraPtr->viewFrustum.planes[FrustumPlanes::LEFT] = Plane(cLeft, normal);
 
   frustum->nearDist = camNearDist;
   frustum->farDist = camFarDist;
@@ -383,32 +383,32 @@ void computeCameraMatricies(Camera* camera, vec3 mirror, float angle,
   frustum->farW = wFar;
 
   //if (angle != 0) {
-    //camera->projection = rotate(camera->projection,
+    //cameraPtr->projection = rotate(cameraPtr->projection,
         //angle, vec3(0,0,1));
   //}
 
-  camera->viewProjection = camera->projection * camera->view;
-  //camera->viewProjection = camera->view * camera->projection;
+  cameraPtr->viewProjection = cameraPtr->projection * cameraPtr->view;
+  //cameraPtr->viewProjection = cameraPtr->view * cameraPtr->projection;
   if (c(CMeshQuality) <= 0) {
-    camera->resolutionDistance = 50000;
+    cameraPtr->resolutionDistance = 50000;
   } else {
-    camera->resolutionDistance = std::clamp(camera->distance *
+    cameraPtr->resolutionDistance = std::clamp(cameraPtr->distance *
         pow(aspectFactor,.5) * resolutionDistanceMult / c(CMeshQuality),
       0.1, 50000.);
   }
 
-  vec3 nearPoint = camera->target;
-  vec3 farPoint = camera->target + normalize(camera->direction);
-  vec4 nearPointVP = camera->viewProjection * vec4(nearPoint, 1);
-  vec4 farPointVP = camera->viewProjection * vec4(farPoint, 1);
+  vec3 nearPoint = cameraPtr->target;
+  vec3 farPoint = cameraPtr->target + normalize(cameraPtr->direction);
+  vec4 nearPointVP = cameraPtr->viewProjection * vec4(nearPoint, 1);
+  vec4 farPointVP = cameraPtr->viewProjection * vec4(farPoint, 1);
   nearPointVP /= nearPointVP.w;
   farPointVP /= farPointVP.w;
   float dist = farPointVP.z-nearPointVP.z;
-  camera->distanceFactor = 1 / (getMeshQuality() * dist);
+  cameraPtr->distanceFactor = 1 / (getMeshQuality() * dist);
 }
 
-void computeCameraMatricies(Camera* camera, vec3 mirror, bool ortho) {
-  computeCameraMatricies(camera, mirror, 0, ortho);
+void computeCameraMatricies(Camera* cameraPtr, vec3 mirror, bool ortho) {
+  computeCameraMatricies(cameraPtr, mirror, 0, ortho);
 }
 
 void setShadowCam() {
@@ -771,7 +771,7 @@ void glfwErrorCallback(int code, const char* description)
   logStacktrace();
 }
 
-void glfwFocusCallback(GLFWwindow* window, int focus)
+void glfwFocusCallback(GLFWwindow* windowPtr, int focus)
 {
   windowFocus = focus;
   SPDLOG_INFO("NewCity focus: {}", focus);

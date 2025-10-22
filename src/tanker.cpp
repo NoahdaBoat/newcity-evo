@@ -36,18 +36,19 @@ bool insertIntoTanker(Tanker* tanker, item element) {
     }
   }
 
+  item gapNdx;
   if (tanker->gaps.size() > 0) {
-    item ndx = tanker->gaps.back();
+    gapNdx = tanker->gaps.back();
     tanker->gaps.pop_back();
-    tanker->elements.set(ndx, element);
+    tanker->elements.set(gapNdx, element);
 
   } else {
-    ndx = tanker->elements.size();
+    gapNdx = tanker->elements.size();
     tanker->elements.push_back(element);
   }
 
   tanker->ndx.ensureSize(element+1);
-  tanker->ndx.set(element, ndx);
+  tanker->ndx.set(element, gapNdx);
   tanker->num ++;
   return true;
 }

@@ -527,16 +527,16 @@ void makeAngledCube(Mesh* mesh, vec3 center, vec3 dir, float height,
   height/=2;
   dir/=2;
   vec3 norm = zNormal(dir);
-  vec3 up = vec3(0, 0, height);
+  vec3 upVector = vec3(0, 0, height);
   center.z += height;
-  vec3 tlf = center + norm - dir + up;
-  vec3 tlb = center + norm + dir + up;
-  vec3 trf = center - norm - dir + up;
-  vec3 trb = center - norm + dir + up;
-  vec3 blf = center + norm - dir - up;
-  vec3 blb = center + norm + dir - up;
-  vec3 brf = center - norm - dir - up;
-  vec3 brb = center - norm + dir - up;
+  vec3 tlf = center + norm - dir + upVector;
+  vec3 tlb = center + norm + dir + upVector;
+  vec3 trf = center - norm - dir + upVector;
+  vec3 trb = center - norm + dir + upVector;
+  vec3 blf = center + norm - dir - upVector;
+  vec3 blb = center + norm + dir - upVector;
+  vec3 brf = center - norm - dir - upVector;
+  vec3 brb = center - norm + dir - upVector;
 
   makeQuad(mesh, tlf, trf, blf, brf, xp, xp);
   makeQuad(mesh, tlb, tlf, blb, blf, xp, xp);
@@ -546,17 +546,17 @@ void makeAngledCube(Mesh* mesh, vec3 center, vec3 dir, float height,
 }
 
 
-void makeAngledCube(Mesh* mesh, vec3 loc, vec3 right, vec3 along, vec3 up,
+void makeAngledCube(Mesh* mesh, vec3 loc, vec3 right, vec3 along, vec3 upVector,
   bool includeTop, vec3 xp) {
 
   vec3 blf = loc                     ;
   vec3 blb = loc         + along     ;
   vec3 brf = loc + right             ;
   vec3 brb = loc + right + along     ;
-  vec3 tlf = loc                 + up;
-  vec3 tlb = loc         + along + up;
-  vec3 trf = loc + right         + up;
-  vec3 trb = loc + right + along + up;
+  vec3 tlf = loc                 + upVector;
+  vec3 tlb = loc         + along + upVector;
+  vec3 trf = loc + right         + upVector;
+  vec3 trb = loc + right + along + upVector;
 
   makeQuad(mesh, tlf, trf, blf, brf, xp, xp);
   makeQuad(mesh, trb, tlb, brb, blb, xp, xp);
@@ -659,16 +659,16 @@ void makeDoubleSign(Mesh* mesh, vec3 loc, vec3 dir,
     reverseL.start, reverseL.end);
 }
 
-void makeIBeam(Mesh* mesh, vec3 loc, vec3 right, vec3 along, vec3 up,
+void makeIBeam(Mesh* mesh, vec3 loc, vec3 right, vec3 along, vec3 upVector,
     float innerSize, bool includeTop, bool includeBottom, vec3 xs) {
 
   vec3 internal = normalize(right)*innerSize;
-  vec3 unitUp = normalize(up)*0.25f;
-  vec3 innerUp = up-unitUp;
+  vec3 unitUp = normalize(upVector)*0.25f;
+  vec3 innerUp = upVector-unitUp;
   makeAngledCube(mesh, loc, right, along, unitUp, true, xs);
   makeAngledCube(mesh, loc+innerUp, right, along, unitUp, includeTop, xs);
   makeAngledCube(mesh, loc+right*.5f-internal*.5f, internal,
-    along, up, false, xs);
+    along, upVector, false, xs);
   if (includeBottom) {
     makeQuad(mesh, loc, loc+right, loc+along, loc+right+along, xs, xs);
     makeQuad(mesh, loc+innerUp, loc+innerUp+right,

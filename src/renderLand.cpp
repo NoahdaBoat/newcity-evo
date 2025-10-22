@@ -352,10 +352,10 @@ TileData computeTileData(RenderChunkIndex ndx, item x, item y) {
 TileData getTileData(RenderChunkIndex ndx, item x, item y) {
   TileData td;
   td.x.y = 0;
-  int renderChunkSize = getRenderChunkSize();
+  int tileChunkSize = getRenderChunkSize();
 
-  item x0 = ndx.x*renderChunkSize + x;
-  item y0 = ndx.y*renderChunkSize + y;
+  item x0 = ndx.x*tileChunkSize + x;
+  item y0 = ndx.y*tileChunkSize + y;
   item cacheNdx = x0 + y0*(getMapTiles()+2) + 4;
 
   if (cacheNdx < 0) handleError("TileData less than zero");
@@ -369,8 +369,8 @@ TileData getTileData(RenderChunkIndex ndx, item x, item y) {
     tileDataCache.set(cacheNdx, td);
   }
 
-  int chunkSize = getRenderChunkSize();
-  float chunkRenderSize = chunkSize * tileSize;
+  int dataChunkSize = getRenderChunkSize();
+  float chunkRenderSize = dataChunkSize * tileSize;
   vec3 offset = vec3((ndx.x + 0.5f) * chunkRenderSize,
       (ndx.y + 0.5f) * chunkRenderSize, 0);
   td.l -= offset;
@@ -397,8 +397,8 @@ void makeTileBox(RenderChunkIndex ndx, int xs, int xe, int ys, int ye,
     float tz00, float tz09, float tz90, float tz99, float zAdj,
     Mesh* mesh, vec3 xp) {
   if (!c(CShowLandTiling)) return;
-  int chunkSize = getRenderChunkSize();
-  float chunkRenderSize = chunkSize * tileSize;
+  int renderChunkSize = getRenderChunkSize();
+  float chunkRenderSize = renderChunkSize * tileSize;
   vec3 offset = vec3((ndx.x + 0.5f) * chunkRenderSize,
       (ndx.y + 0.5f) * chunkRenderSize, 0);
   zAdj -= zOffset;
@@ -433,11 +433,11 @@ void renderTile(RenderChunkIndex ndx, int xs, int xe, int ys, int ye,
 
   //SPDLOG_INFO("renderTile {},{} {},{} {},{}",
    //   ndx.x, ndx.y, xs, ys, xe, ye);
-  int chunkSize = getRenderChunkSize();
+  int renderChunkSize = getRenderChunkSize();
   if (xs < 0) xs = 0;
   if (ys < 0) ys = 0;
-  if (xe > chunkSize) xe = chunkSize;
-  if (ye > chunkSize) ye = chunkSize;
+  if (xe > renderChunkSize) xe = renderChunkSize;
+  if (ye > renderChunkSize) ye = renderChunkSize;
   if (xe-xs <= 0 || ye-ys <= 0) return;
 
   TileData td[4] = {
@@ -493,7 +493,7 @@ void renderTile(RenderChunkIndex ndx, int xs, int xe, int ys, int ye,
       v1 = 0;
 
     } else if (i == 1) {
-      if (xe + ndx.x*chunkSize < getMapTiles()) continue;
+      if (xe + ndx.x*renderChunkSize < getMapTiles()) continue;
       v0 = 2;
       v1 = 3;
 
@@ -504,8 +504,8 @@ void renderTile(RenderChunkIndex ndx, int xs, int xe, int ys, int ye,
       v1 = 2;
 
     } else if (i == 3) {
-      if (ye + ndx.y*chunkSize < getMapTiles()) continue;
-      //if (ye < chunkSize) continue;
+      if (ye + ndx.y*renderChunkSize < getMapTiles()) continue;
+      //if (ye < renderChunkSize) continue;
       //if (ndx.y < getLandSize()-1) continue;
       v0 = 3;
       v1 = 1;
@@ -546,7 +546,7 @@ void renderTile(RenderChunkIndex ndx, int xs, int xe, int ys, int ye,
 void renderWaterTile(RenderChunkIndex ndx, int x, int y, int stride,
     float uvz, Mesh* waterMesh) {
   int numWater = 0;
-  int chunkSize = getRenderChunkSize();
+  int renderChunkSize = getRenderChunkSize();
 
   TileData td[4] = {
     getTileData(ndx, x, y),
@@ -848,8 +848,8 @@ void renderTileRecursive(RenderChunkIndex ndx, int xs, int xe, int ys, int ye,
 void renderChunkInner(RenderChunkIndex ndx, int s, vec3 offset,
     Mesh* landMesh, Mesh* waterMesh, Mesh* dirtMesh) {
   bool renderWater;
-  int chunkSize = getRenderChunkSize();
-  int paddedChunkSize = chunkSize + s;
+  int renderChunkSize = getRenderChunkSize();
+  int paddedChunkSize = renderChunkSize + s;
   float maxHeight = c(CMaxHeight);
 
   // Remember to dealloc! No early returns
@@ -953,8 +953,8 @@ void renderChunkInner(RenderChunkIndex ndx, int s, vec3 offset,
   }
 
 
-  for(int x = 0; x < chunkSize; x += s) {
-    for(int y = 0; y < chunkSize; y += s) {
+  for(int x = 0; x < renderChunkSize; x += s) {
+    for(int y = 0; y < renderChunkSize; y += s) {
       vec3 br = lc[x  ][y  ];
       vec3 tr = lc[x  ][y+s];
       vec3 bl = lc[x+s][y  ];
@@ -1051,7 +1051,7 @@ void renderChunkInner(RenderChunkIndex ndx, int s, vec3 offset,
         }
       }
 
-      if (x+s >= chunkSize && ndx.x == numRenderChunks - 1) {
+      if (x+s >= renderChunkSize && ndx.x == numRenderChunks - 1) {
         vec3 ubl = bl;
         vec3 utl = tl;
         ubl.z = landBottom;
@@ -1066,7 +1066,7 @@ void renderChunkInner(RenderChunkIndex ndx, int s, vec3 offset,
         }
       }
 
-      if (y+s >= chunkSize && ndx.y == numRenderChunks - 1) {
+      if (y+s >= renderChunkSize && ndx.y == numRenderChunks - 1) {
         vec3 utr = tr;
         vec3 utl = tl;
         utr.z = landBottom;
@@ -1112,12 +1112,13 @@ void renderChunkInner(RenderChunkIndex ndx, int s, vec3 offset,
   delete[] lc;
 }
 
-void makeUnderDirt(Mesh* mesh, RenderChunkIndex ndx, float zOffset) {
+void makeUnderDirt(Mesh* mesh, RenderChunkIndex ndx, float dirtZOffset) {
   if (mesh == 0) return;
 
-  float chunkRenderSize = chunkSize * tileSize;
+  int dirtChunkSize = getRenderChunkSize();
+  float chunkRenderSize = dirtChunkSize * tileSize;
   vec3 loc = vec3(-chunkRenderSize*.5f, -chunkRenderSize*.5f,
-      landBottom - zOffset);
+      landBottom - dirtZOffset);
   vec3 along = vec3(chunkRenderSize, 0, 0);
   vec3 right = vec3(0, chunkRenderSize, 0);
 
@@ -1128,8 +1129,8 @@ void makeUnderDirt(Mesh* mesh, RenderChunkIndex ndx, float zOffset) {
 void renderTrees(RenderChunkIndex ndx, vec3 offset) {
   float mapSize = getMapSize();
   RenderChunk* chunk = getRenderChunk(ndx);
-  int chunkSize = getRenderChunkSize();
-  float chunkRenderSize = chunkSize * tileSize;
+  int renderChunkSize = getRenderChunkSize();
+  float chunkRenderSize = renderChunkSize * tileSize;
   float chunkCullSize = chunkRenderSize*2;
   bool treeSimpleOnly = c(CTreeSimpleDistance) <= 0;
   float stepSize = c(CMinTreeSpacing);
@@ -1140,10 +1141,10 @@ void renderTrees(RenderChunkIndex ndx, vec3 offset) {
     treeData.push_back(Cup<vec4>::newCup(0));
   }
 
-  for(int x = 0; x < chunkSize; x ++) {
-    for(int y = 0; y < chunkSize; y ++) {
-      item x0 = ndx.x*chunkSize + x;
-      item y0 = ndx.y*chunkSize + y;
+  for(int x = 0; x < renderChunkSize; x ++) {
+    for(int y = 0; y < renderChunkSize; y ++) {
+      item x0 = ndx.x*renderChunkSize + x;
+      item y0 = ndx.y*renderChunkSize + y;
       vec3 loc = getTileLocation(x0, y0);
 
       if (hasTrees(x0, y0)) {
@@ -1241,8 +1242,8 @@ void renderChunk(RenderChunkIndex ndx) {
     return;
   }
   RenderChunk* chunk = getRenderChunk(ndx);
-  int chunkSize = getRenderChunkSize();
-  float chunkRenderSize = chunkSize * tileSize;
+  int renderChunkSize = getRenderChunkSize();
+  float chunkRenderSize = renderChunkSize * tileSize;
   float chunkCullSize = chunkRenderSize*2;
   bool simpleOnly = c(CLandSimpleDistance) <= 0;
   bool waterSimpleOnly = c(CWaterSimpleDistance) <= 0;
@@ -1250,9 +1251,9 @@ void renderChunk(RenderChunkIndex ndx) {
       (ndx.y + 0.5f) * chunkRenderSize, 0);
 
   float zOff = 0;
-  for(int x = 0; x < chunkSize; x ++) {
-    for(int y = 0; y < chunkSize; y ++) {
-      float height = getHeight(ndx.x*chunkSize + x, ndx.y*chunkSize + y);
+  for(int x = 0; x < renderChunkSize; x ++) {
+    for(int y = 0; y < renderChunkSize; y ++) {
+      float height = getHeight(ndx.x*renderChunkSize + x, ndx.y*renderChunkSize + y);
       if (validate(height)) {
         zOff += height;
       } else {
@@ -1261,11 +1262,11 @@ void renderChunk(RenderChunkIndex ndx) {
       }
     }
   }
-  zOffset = zOff/(chunkSize*chunkSize);
+  zOffset = zOff/(renderChunkSize*renderChunkSize);
   offset.z = zOffset;
   if (!validate(zOffset)) {
-    SPDLOG_INFO("zOffset:{} zOff:{} chunkSize:{}",
-        zOffset, zOff, chunkSize);
+    SPDLOG_INFO("zOffset:{} zOff:{} renderChunkSize:{}",
+        zOffset, zOff, renderChunkSize);
   }
 
   vec3 placement = offset;
@@ -1353,11 +1354,11 @@ void renderChunk(RenderChunkIndex ndx) {
   } else {
     waterColorCurrent = colorWaterBlue;
     if (!simpleOnly) {
-      renderTileRecursive(ndx, 0, chunkSize, 0, chunkSize,
+      renderTileRecursive(ndx, 0, renderChunkSize, 0, renderChunkSize,
           c(CMaxLandErrorClose), landMesh, waterMesh, dirtMesh);
     }
     waterColorCurrent.z = 0.4;
-    renderTileRecursive(ndx, 0, chunkSize, 0, chunkSize,
+    renderTileRecursive(ndx, 0, renderChunkSize, 0, renderChunkSize,
         c(CMaxLandErrorFar), simpleLandMesh, simpleWaterMesh, simpleDirtMesh);
 
     makeUnderDirt(dirtMesh, ndx, zOffset);
@@ -1366,8 +1367,8 @@ void renderChunk(RenderChunkIndex ndx) {
     for (int i = waterSimpleOnly; i < 2; i++) {
       Mesh* m = i == 0 ? waterMesh : simpleWaterMesh;
       int stride = i == 0 ? 1 : simpleLandStride;
-      for(int x = 0; x < chunkSize; x += stride) {
-        for(int y = 0; y < chunkSize; y += stride) {
+      for(int x = 0; x < renderChunkSize; x += stride) {
+        for(int y = 0; y < renderChunkSize; y += stride) {
           renderWaterTile(ndx, x, y, stride, i ? 0.4 : 1, m);
         }
       }

@@ -234,7 +234,7 @@ Part* economyPanel() {
 
   for (int i = 0; i < numEconomyTabs; i++) {
     Part* butt = button(
-        vec2(chartWidth + i-numEconomyTabs-1, 0),
+        vec2(chartWidth + i-(int)numEconomyTabs-1, 0),
         economyTabIcon[i], setEconomyTab, i);
     setPartTooltipValues(butt,
       TooltipType::GraphCityStats+i);
@@ -246,7 +246,7 @@ Part* economyPanel() {
 
   if (economyTab == CityStatsTab) {
     Part* expandButt = button(
-        vec2(chartWidth-numEconomyTabs-2, 0),
+        vec2(chartWidth-(int)numEconomyTabs-2, 0),
         iconPlus, toggleEPExpanded, 0);
     setPartTooltipValues(expandButt,
       TooltipType::GraphExpand);
@@ -297,20 +297,20 @@ Part* economyPanel() {
             vec2(chartWidth, scrollSize));
         float y1 = 0;
 
-        for (int stat = 0; stat < numStatistics; stat++) {
-          if (!timeSeriesHasData(ourCityEconNdx(), (Statistic)stat)) continue;
+        for (int statIdx = 0; statIdx < numStatistics; statIdx++) {
+          if (!timeSeriesHasData(ourCityEconNdx(), (Statistic)statIdx)) continue;
 
-          string name = statName(stat);
-          string code = getStatisticCode(stat);
+          string name = statName(statIdx);
+          string code = getStatisticCode(statIdx);
           bool found = stringContainsCaseInsensitive(name, searchStr) ||
             stringContainsCaseInsensitive(code, searchStr);
           if (!found) continue;
 
-          Part* butt = button(vec2(0,y1), vec2(chartWidth - 1, scale),
-            strdup_s(statName(stat)), setChart);
-          butt->itemData = stat;
-          butt->vecData.x = i;
-          r(scroll, butt);
+          Part* statButt = button(vec2(0,y1), vec2(chartWidth - 1, scale),
+            strdup_s(statName(statIdx)), setChart);
+          statButt->itemData = statIdx;
+          statButt->vecData.x = i;
+          r(scroll, statButt);
           y1 += scale;
         }
 
@@ -340,12 +340,12 @@ Part* economyPanel() {
         }
 
         if (cat < 0) {
-          Part* butt = button(vec2(x,y), iconLeft, vec2(chartWidth-scale, .8f),
+          Part* econButt = button(vec2(x,y), iconLeft, vec2(chartWidth-scale, .8f),
               strdup_s(getEconName(econ)), setChartEcon, -1);
-          setPartTooltipValues(butt,
+          setPartTooltipValues(econButt,
             TooltipType::GraphChooseStat);
-          butt->vecData.x = i;
-          r(result, butt);
+          econButt->vecData.x = i;
+          r(result, econButt);
 
           if (searchChart != i) {
             r(result, button(vec2(x+chartWidth-scale,y), iconQuery, vec2(scale, scale), startChartSearch, i));
@@ -366,17 +366,17 @@ Part* economyPanel() {
                 vec2(chartWidth, scrollSize), &chartScroll[i], scroll));
 
         } else {
-          Part* butt = button(vec2(x,y), iconLeft, vec2((chartWidth-scale)*.5f, .8f), strdup_s(statCategoryName(cat)), setChartCategory, -1);
-          setPartTooltipValues(butt,
+          Part* catButt = button(vec2(x,y), iconLeft, vec2((chartWidth-scale)*.5f, .8f), strdup_s(statCategoryName(cat)), setChartCategory, -1);
+          setPartTooltipValues(catButt,
             TooltipType::GraphChooseStat);
-          butt->vecData.x = i;
-          r(result, butt);
+          catButt->vecData.x = i;
+          r(result, catButt);
 
           if (searchChart != i) {
             r(result, button(vec2(x+(chartWidth-scale)*.5f,y), iconQuery, vec2(scale, scale), startChartSearch, i));
           }
 
-          butt = button(vec2(x+(chartWidth+scale)*.5f,y),
+          Part* butt = button(vec2(x+(chartWidth+scale)*.5f,y),
               vec2((chartWidth-scale)*.5f, .8f),
               strdup_s(getEconName(econ)), setChartEcon);
           butt->flags |= _partAlignRight;
@@ -393,11 +393,11 @@ Part* economyPanel() {
             stat = category[j];
             if (stat < 0) break;
             if (!timeSeriesHasData(econ, stat)) continue;
-            Part* butt = button(vec2(0,y1), vec2(chartWidth - 1, scale),
+            Part* statButt = button(vec2(0,y1), vec2(chartWidth - 1, scale),
               strdup_s(statName(stat)), setChart);
-            butt->itemData = stat;
-            butt->vecData.x = i;
-            r(scroll, butt);
+            statButt->itemData = stat;
+            statButt->vecData.x = i;
+            r(scroll, statButt);
             y1 += scale;
           }
           r(result, scrollboxFrame(vec2(x,y+scale+epPadding),

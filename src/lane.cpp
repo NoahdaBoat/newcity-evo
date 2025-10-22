@@ -1074,8 +1074,8 @@ void swapLanesForVehicles(bool fromSave) {
       laneDrains.ensureSize((tableNdx+1)*maxLaneDrains);
       int ndx = tableNdx*maxLaneDrains;
       int numDrains = lane->drains.size();
-      for (int i = 0; i < maxLaneDrains; i ++) {
-        laneDrains.set(ndx, i < numDrains ? lane->drains[i] : 0);
+      for (int k = 0; k < maxLaneDrains; k ++) {
+        laneDrains.set(ndx, k < numDrains ? lane->drains[k] : 0);
         ndx ++;
       }
 

@@ -238,11 +238,11 @@ bool runTask_g(item ndx, bool force) {
     return false;
   }
 
-  double startTime = glfwGetTime();
+  double taskStartTime = glfwGetTime();
   double timeEstimate = getTimeEstimate(type);
 
   if (!force && !(type->flags & _taskFrameWait)) {
-    double estimateEndTime = startTime + timeEstimate;
+    double estimateEndTime = taskStartTime + timeEstimate;
     double timePending = lastTaskTime - task->timeQueued;
     bool willBeLate = estimateEndTime > frameDeadline;
     bool willBeSuperLate = estimateEndTime > frameDeadline+maxTardiness;
@@ -328,14 +328,14 @@ void runAllTaskQueue_g() {
 }
 
 void runTaskQueue_g() {
-  double startTime = lastTaskTime;
+  double queueStartTime = lastTaskTime;
   double endTimeEst = 0;
   maxPendingTime = getFrameDuration() * 10;
   item numRun = 0;
 
-  //SPDLOG_INFO("start {:.2f}ms", (glfwGetTime() - startTime)*1000);
+  //SPDLOG_INFO("start {:.2f}ms", (glfwGetTime() - queueStartTime)*1000);
   if (c(CLogUpdateTime)) {
-    double renderTime = (glfwGetTime() - startTime)*1000;
+    double renderTime = (glfwGetTime() - queueStartTime)*1000;
     if (renderTime > 0.001) {
       SPDLOG_INFO("Spent {:.2f}ms waiting for render", renderTime);
     }

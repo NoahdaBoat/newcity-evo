@@ -165,15 +165,15 @@ void renderBlueprintCursor() {
     setEntityVisible(bpTextEntity, false);
 
   } else if (!isBPSelectionMode) {
-    Mesh* textMesh = getMeshForEntity(bpTextEntity);
-    float angle = getHorizontalCameraAngle() - pi_o/2;
-    float pitch = -getVerticalCameraAngle();
-    float dist = getCameraDistance();
-    float fontSize = dist/15;
-    float tx = fontSize;
-    float ty = 0;
-    float tz = 0; //fontSize*2;
-    vec3 tup = vec3(0,0,fontSize*2);
+    textMesh = getMeshForEntity(bpTextEntity);
+    angle = getHorizontalCameraAngle() - pi_o/2;
+    pitch = -getVerticalCameraAngle();
+    dist = getCameraDistance();
+    fontSize = dist/15;
+    tx = fontSize;
+    ty = 0;
+    tz = 0; //fontSize*2;
+    tup = vec3(0,0,fontSize*2);
 
     money cost = getTotalUnsetPlansCost();
     if (cost > 0) {

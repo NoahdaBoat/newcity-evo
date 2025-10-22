@@ -695,7 +695,7 @@ Part* steamWorkshop(float aspectRatio) {
   yPos += wsTitleSize + wsPad;
 
   // Tabs
-  float tabBtnXSize = wsWidth / WSTab::NumTabs;
+  float tabBtnXSize = wsWidth / (int)WSTab::NumTabs;
   for(int i = 0; i < WSTab::NumTabs; i++) {
     Part* tabBtn = button(vec2(xPos+wsPad, yPos), vec2(tabBtnXSize-(wsPad*2.0f), 1.5f), strdup_s(workshopGetStringForTab((WSTab)i).c_str()), workshopSetActiveTab);
     tabBtn->itemData = i;

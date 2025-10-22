@@ -68,9 +68,9 @@ void writeVehicleDescription(FileBuffer* file, VehicleDescription desc) {
 VehicleDescription readVehicleDescription(FileBuffer* file, int version) {
   VehicleDescription result;
   item style = fread_item(file, version);
-  item numColors = version < 54 ? 15 : numVehicleColors;
-  item model = style / numColors;
-  item color = style % numColors;
+  item vehicleColors = version < 54 ? 15 : numVehicleColors;
+  item model = style / vehicleColors;
+  item color = style % vehicleColors;
   model = renumVehicleModel(model);
 
   if (model <= 0 || model > vehicleModelsSize()) {
@@ -399,8 +399,8 @@ item addFreightVehicle_g(item travelGroup, Route* route) {
 
     item model = randomVehicleModel(VhTypeTruckFront);
     item style = model*numVehicleColors + randomVehicleColor();
-    item result = addVehicle_g(ndxV, style, travelGroup, route);
-    result = addTrailer(ndxT, result);
+    item vehicleResult = addVehicle_g(ndxV, style, travelGroup, route);
+    result = addTrailer(ndxT, vehicleResult);
     //setSelection(SelectionVehicle, result);
 
   } else {
@@ -534,10 +534,10 @@ void removeVehicle(item ndx) {
     money fuelUsage = c(CLitersPerMinuteCar);
 
     if (vehicle->flags & _vehicleIsTransit) {
-      money fuelUsage = c(CLitersPerMinuteBus);
+      money busFuelUsage = c(CLitersPerMinuteBus);
       money maint = vehicle->trailing == 0 ? c(CMaintPerMinuteBus) : 0;
       maint *= getInflation();
-      float cost = (fuelUsage * fuelPrice + maint) * time;
+      float cost = (busFuelUsage * fuelPrice + maint) * time;
       cost *= getTransitMoneyMultiplier();
       transaction(TransitExpenses, -cost);
       removeVehicleFromTransitLine_g(ndx);
@@ -802,7 +802,7 @@ void placeVehicle(item ndx) {
   placeVehicleEntity(v, ndx);
 }
 
-void validateVehicles(char* msg) {
+void validateVehicles(const char* msg) {
   for (int i = 1; i <= vehicles->size(); i ++) {
     Vehicle* v = getVehicle(i);
     bool transit = v->flags & _vehicleIsTransit;
@@ -1041,11 +1041,11 @@ void readVehicle(FileBuffer* file, int version, item ndx) {
 
   vehicle->model = model;
   if ((vehicle->flags & _vehicleExists) && vehicle->model > 0) {
-    VehicleModel* model = getVehicleModel(vehicle->model);
-    model->count ++;
-    if (model->type == VhTypeTruck ||
-      model->type == VhTypeTruckFront ||
-      model->type == VhTypeTruckMiddle) vehicle->flags |= _vehicleIsFrieght;
+    VehicleModel* vehicleModel = getVehicleModel(vehicle->model);
+    vehicleModel->count ++;
+    if (vehicleModel->type == VhTypeTruck ||
+      vehicleModel->type == VhTypeTruckFront ||
+      vehicleModel->type == VhTypeTruckMiddle) vehicle->flags |= _vehicleIsFrieght;
   }
 
   //if (vehicle->model == 0) TRIP;

@@ -129,7 +129,7 @@ void adjustPersonStats(item personNdx, int mult) {
   adjustStat(econ, Population, mult);
 
   if (edu == 0) {
-    adjustStat(econ, (Statistic)(NumNoEdu+edu), mult);
+    adjustStat(econ, (Statistic)(NumNoEdu+(int)edu), mult);
   } else {
     for (int i = 1; i <= edu; i++) {
       adjustStat(econ, (Statistic)(NumNoEdu+i), mult);
@@ -137,11 +137,11 @@ void adjustPersonStats(item personNdx, int mult) {
   }
 
   if (person->flags & _personIsWorker) {
-    adjustStat(econ, (Statistic)(NumNoEduWorkers+edu), mult);
+    adjustStat(econ, (Statistic)(NumNoEduWorkers+(int)edu), mult);
     adjustStat(econ, NumWorkers, mult);
     if (person->employer == 0) {
       adjustStat(econ, NumUnemployed, mult);
-      adjustStat(econ, (Statistic)(NumNoEduUnemployed+edu), mult);
+      adjustStat(econ, (Statistic)(NumNoEduUnemployed+(int)edu), mult);
     } else {
       adjustStat(econ, NumEmployed, mult);
     }
@@ -183,7 +183,7 @@ void findAnyJob(item personNdx) {
   if (family->home != 0) {
     Building* home = getBuilding(family->home);
     item laneBlock = home->graphLoc.lane;
-    Supply supplies = (Supply)(SuppliesNoEduJob + edu);
+    Supply supplies = (Supply)(SuppliesNoEduJob + (int)edu);
     item brokered = routeBroker_p(laneBlock, supplies);
     if (brokered != 0) {
       employeeHired(brokered, personNdx);
@@ -293,7 +293,7 @@ item addPerson(bool isFemale, float age, item familyNdx, int flags) {
       float cityTarget = mix(city, cityPossible, c(CEducationMix));
       float mixedTarget = mix(cityTarget, nat, c(CEducationNationalMix));
       if (isTourist) {
-        mixedTarget *= (numEducationLevels-i)*0.2f/numEducationLevels*
+        mixedTarget *= ((int)numEducationLevels-i)*0.2f/(int)numEducationLevels*
           getStatistic(ourCityEconNdx(), TouristRating) + 0.1;
       } else {
         mixedTarget *= 1 -
@@ -1149,7 +1149,7 @@ Supply supplyForActivity(item personNdx, item activity) {
 
   if (activity == InterviewActivity) {
     item edu = getEducationForPerson(personNdx);
-    return (Supply)(SuppliesNoEduJob + edu);
+    return (Supply)(SuppliesNoEduJob + (int)edu);
   }
 
   if (activity == GovernmentActivity) {
@@ -1948,11 +1948,11 @@ item numFamilies(item econ) {
 }
 
 float unemploymentRate(item econ, EducationLevel edu) {
-  int numWorkers = getStatistic(econ, (Statistic)(NumNoEduWorkers+edu));
+  int numWorkers = getStatistic(econ, (Statistic)(NumNoEduWorkers+(int)edu));
   if (numWorkers == 0) {
     return 0;
   } else {
-    int numUnemp = getStatistic(econ, (Statistic)(NumNoEduUnemployed+edu));
+    int numUnemp = getStatistic(econ, (Statistic)(NumNoEduUnemployed+(int)edu));
     return float(numUnemp) / numWorkers;
   }
 }
