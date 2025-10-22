@@ -477,8 +477,8 @@ void steamws_core::MoveSubbedItemsToGameDir() {
         tagPath = steamws_getLocalPathEnumFromTag(itemTags[i]);
         sourceDir = workshopNewCityContentPath + "/" + workshopItemSubfolders[f];
         localDirForTag = steamws_getLocalRelativePath(tagPath) + "/" + itemNames[i];
-        if(!copyDir(sourceDir, localDirForTag, std::experimental::filesystem::copy_options::overwrite_existing 
-          | std::experimental::filesystem::copy_options::recursive)) {
+        if(!copyDir(sourceDir, localDirForTag, std::filesystem::copy_options::overwrite_existing 
+          | std::filesystem::copy_options::recursive)) {
           SPDLOG_ERROR("Error copying Steam Workshop item dir from source ({}) to game dir staging ({})", sourceDir, localDirForTag);
         } else {
           SPDLOG_INFO("Successfully copied Steam Workshop item dir from source ({}) to game dir staging ({})", sourceDir, localDirForTag);
@@ -865,8 +865,8 @@ bool steamws_StageItemData(UGCUpdateHandle_t handle, PublishedFileId_t id) {
   if(!isMod) {
     // itemDestPath += file.nameAndExt();
     if (isDesign) {
-      if (!copyDir(itemPath, itemDestPath, std::experimental::filesystem::copy_options::overwrite_existing |
-        std::experimental::filesystem::copy_options::recursive)) {
+      if (!copyDir(itemPath, itemDestPath, std::filesystem::copy_options::overwrite_existing |
+        std::filesystem::copy_options::recursive)) {
         SPDLOG_ERROR("Error copying design (Src: {}) (Dest: {})", itemPath, itemDestPath);
         return false;
       }
@@ -876,8 +876,8 @@ bool steamws_StageItemData(UGCUpdateHandle_t handle, PublishedFileId_t id) {
     std::string modDestPath = itemDestPath + file.name + "/";
     makeDirectory(modDestPath.c_str());
 
-    if(!copyDir(itemPath, modDestPath, std::experimental::filesystem::copy_options::overwrite_existing |
-      std::experimental::filesystem::copy_options::recursive)) {
+    if(!copyDir(itemPath, modDestPath, std::filesystem::copy_options::overwrite_existing |
+      std::filesystem::copy_options::recursive)) {
       SPDLOG_ERROR("Error copying mod (Src: {}) (Dest: {})", itemPath, modDestPath);
       return false;
     }

@@ -134,7 +134,7 @@ float getEduLevelLimit(item edu) {
     effectValue[EducationEffect] * getEffectMultiplier(Technology) +
     getStatistic(ourCityEconNdx(), NumColleges) *
     c((FloatConstant)(CMaxHSEduPerCollege+edu-1));
-  result = clamp(result, 0.f, getEduLevelHardLimit(edu));
+  result = std::clamp(result, 0.f, getEduLevelHardLimit(edu));
   return result;
 }
 
@@ -146,8 +146,8 @@ float getEffectMultiplier(item effect, item value) {
   } else if (effect == BusinessEffect) {
     return pow(c(CBusinessUnempBasis), value);
   } else if (effect == Prestige) {
-    return clamp(c(CMaxResidentialDensity) + c(CPrestigeMaxResDensity)*value,
-        0.f, 1.f);
+    return std::clamp(c(CMaxResidentialDensity) + c(CPrestigeMaxResDensity)*value,
+         0.f, 1.f);
   } else if (effect == Environmentalism) {
     return pow(c(CEnvironmentalismPollutionBasis), value);
   } else if (effect == Community) {
@@ -273,7 +273,7 @@ char* getMacroEffectDescriptor(item effect) {
   } else if (effect == Prestige) {
     float val = getEffectMultiplier(Prestige, value)*10;
     int num = val;
-    num = clamp(num, 0, 10);
+    num = std::clamp(num, 0, 10);
 
     if (num < 10) {
       float gap = float(num + 1) - val;
@@ -444,13 +444,13 @@ float getAdjustedDensity(item zone, vec3 loc) {
   float unadjustedDensity = heatMapGet(Density, loc);
   if (zone == FactoryZone) {
     //float edu = heatMapGet(Education, loc);
-    //float adjEdu = clamp(edu*2.0f, 0.f, unemploymentRate(HSDiploma)*20);
-    //adjEdu = clamp(adjEdu, 0.f, 1.f);
-    return clamp(unadjustedDensity*2.5f, 0.f, 1.f);
+    //float adjEdu = std::clamp(edu*2.0f, 0.f, unemploymentRate(HSDiploma)*20);
+    //adjEdu = std::clamp(adjEdu, 0.f, 1.f);
+    return std::clamp(unadjustedDensity*2.5f, 0.f, 1.f);
   } else if (zone == ResidentialZone || zone == MixedUseZone) {
-    //float adjDensity = clamp(unadjustedDensity, 0.f,
+    //float adjDensity = std::clamp(unadjustedDensity, 0.f,
         //effectValue[Prestige]/25.f);
-    return clamp(unadjustedDensity, 0.f, getEffectMultiplier(Prestige));
+    return std::clamp(unadjustedDensity, 0.f, getEffectMultiplier(Prestige));
   } else {
     return unadjustedDensity;
   }
@@ -890,14 +890,14 @@ void updateGovernmentBuilding(item ndx, float duration) {
                 item numMem = ef->members.size();
                 item memRnd = randItem(numMem);
                 for (item memNdx = 0; memNdx < numMem && memNdx < 5; memNdx++) {
-                  item epNdx = ef->members[(memNdx+memRnd)%numMem];
-                  if (epNdx > 0) {
+                  item personNdx = ef->members[(memNdx+memRnd)%numMem];
+                  if (personNdx > 0) {
 
                     // found a person, let's level them up
-                    EducationLevel lvl = getEducationForPerson(epNdx);
+                    EducationLevel lvl = getEducationForPerson(personNdx);
                     item target = lvl+1;
                     if (eduTarget[target]) {
-                      educatePerson(epNdx, (EducationLevel)target);
+                      educatePerson(personNdx, (EducationLevel)target);
                       numEducated ++;
                       if (numEducated >= numToEducate) return; // done
                       break; // only educate one person at a time per family.

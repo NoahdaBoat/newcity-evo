@@ -182,20 +182,20 @@ void updateOneWanderer_g(item ndx, float duration) {
     } else {
       v->yaw += pi_o;
     }
-    v->location.x = clamp(v->location.x, -buffer+2, mapSize+buffer-2);
-    v->location.y = clamp(v->location.y, -buffer+2, mapSize+buffer-2);
+    v->location.x = std::clamp(v->location.x, -buffer+2, mapSize+buffer-2);
+    v->location.y = std::clamp(v->location.y, -buffer+2, mapSize+buffer-2);
   }
   float floor = pointOnLand(v->location).z;
   if (floor < 0) floor = 0;
   float ceiling = c(CMaxHeight) + 100.f;
   if (floor > v->location.z || v->location.z > ceiling) {
-    v->location.z = clamp(v->location.z, floor + 2.f, ceiling - 2.f);
+    v->location.z = std::clamp(v->location.z, floor + 2.f, ceiling - 2.f);
     v->pitch *= -1;
   }
 
   if (v->location.z < floor + 200 && v->pitch < 0.05) {
     float pitchDiff = (floor+200 - v->location.z)/200*.01f;
-    pitchDiff = clamp(pitchDiff, 0.f, 0.01f);
+    pitchDiff = std::clamp(pitchDiff, 0.f, 0.01f);
     v->pitch += pitchDiff;
   }
 
@@ -267,7 +267,7 @@ void updateWanderers_g(float duration) {
     }
 
     //float numToSpawn = isDesigner ? duration : dayDur/model->maxAge;
-    //numToSpawn = clamp(numToSpawn, 0.f, diff);
+    //numToSpawn = std::clamp(numToSpawn, 0.f, diff);
     //SPDLOG_INFO("type:{} count:{} targetCount:{} numToSpawn:{}",
         //model->code, model->count, targetCount, numToSpawn);
 

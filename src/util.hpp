@@ -36,8 +36,9 @@ vec3 nearestPointOnLine(vec3 p, Line l);
 vec3 lineAtZ(Line l, float z);
 
 item iclamp(item a, item b, item c);
-float lerp(float a0, float a1, float w);
-vec3 lerp(vec3 a0, vec3 a1, float w);
+// Note: Use std::lerp for scalar interpolation (better precision)
+// Custom vec3 lerp using std::lerp component-wise for better precision
+vec3 vec3Lerp(vec3 a0, vec3 a1, float w);
 float nonZero(float val);
 float slope(Line line);
 float triangle_intersection(Line line,

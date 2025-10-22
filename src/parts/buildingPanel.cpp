@@ -62,7 +62,7 @@ void buildingPanel(Part* result, Building* b) {
 
     y += 1-scl;
     vec2 end;
-    r(result, span(vec2(sclPad+spPadding,y), 0, vec2(spWidth-sclPad*2, scl),
+    r(result, textSpan(vec2(sclPad+spPadding,y), 0, vec2(spWidth-sclPad*2, scl),
         strdup_s(name), &end));
     y = end.y;
     if (end.x > 0) y += scl;
@@ -246,7 +246,7 @@ void buildingPanel(Part* result, Building* b) {
       float hx = i*1.1f + hmPad;
       float hmVal = heatMapGet((HeatMapIndex)i, b->location);
       int hmValI = round(hmVal*10);//+0.05;
-      hmValI = clamp(hmValI, 0, 10);
+      hmValI = std::clamp(hmValI, 0, 10);
 
       Part* hmButt = panel(vec2(hx, 0.0f),
           vec2(1.0f, heatmapPanel->dim.end.y-(hmPad*2)));
@@ -259,7 +259,7 @@ void buildingPanel(Part* result, Building* b) {
       r(hmButt, icon(vec2(0.0f, hmBase+hmPad), vec2(1,1), iconHeatmap[i]));
       for (int j = 0; j < hmValI && j < 10; j++) {
         //float tileSize = 1.f;//(j+1 >= value) ? 1.f : (value - j);
-        //float tileSize = clamp(value - j, 0.f, 1.f);
+        //float tileSize = std::clamp(value - j, 0.f, 1.f);
         float tileSize = 1.f;
         tileSize *= .5f;
         r(hmButt, icon(
@@ -298,7 +298,7 @@ void buildingPanel(Part* result, Building* b) {
     if (b->entity != 0) {
       item texNdx = getEntity(b->entity)->texture;
       vec2 end;
-      r(inner, span(vec2(0.125, y+.125), scl, vec2(ipWidth, scl-.125),
+      r(inner, textSpan(vec2(0.125, y+.125), scl, vec2(ipWidth, scl-.125),
             sprintf_o("Texture file:\n%s", getTextureFilename(texNdx)), &end));
       y = end.y + sclPad;
     }
@@ -720,7 +720,7 @@ void legacyBuildingPanel(Part* result, Building* selection) {
     r(hmButt, icon(vec2(0.0f, hmBase+hmPad), vec2(1,1), iconHeatmap[i]));
     for (int j = 0; j <= value && j < 10; j++) {
       //float tileSize = 1.f;//(j+1 >= value) ? 1.f : (value - j);
-      //float tileSize = clamp(value - j, 0.f, 1.f);
+      //float tileSize = std::clamp(value - j, 0.f, 1.f);
       float tileSize = 1.f;
       tileSize *= .5f;
       r(hmButt, icon(

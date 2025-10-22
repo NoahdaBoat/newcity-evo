@@ -14,7 +14,7 @@
 #include "zone.hpp"
 
 #include "spdlog/spdlog.h"
-#include <math.h>
+#include <cmath>
 
 static float taxRate[5] = {0.00, 0.01, 0.00, 0.00, 0.00};
 static bool taxEnabled[5] = {false, true, true, false, true};
@@ -262,7 +262,7 @@ double getInterestRate() {
 }
 
 double compound(double interestRate, double time) {
-  return pow(2.7183, interestRate*time);
+  return std::pow(2.7183, interestRate*time);
 }
 
 void applyInterest(Budget* b, double duration) {
@@ -534,7 +534,7 @@ float getTaxRate(BudgetLine t) {
 }
 
 float getBudgetControlEffect(BudgetLine l) {
-  return pow(getCurrentBudget()->control[l], c(CBudgetControlFactor));
+  return std::pow(getCurrentBudget()->control[l], c(CBudgetControlFactor));
 }
 
 float getBudgetControl(BudgetLine l) {
@@ -589,7 +589,7 @@ char* printMoneyString(money amount) {
   amount *= c(CMoneyMultiplier);
   char* result;
   const char* neg = (amount <= -0.01) ? "-" : "";
-  amount = abs(amount);
+  amount = std::abs(amount);
 
   if (amount >= 1000000000) { // 1B
     result = sprintf_o("%s$%.2fB", neg, amount/1000000000);

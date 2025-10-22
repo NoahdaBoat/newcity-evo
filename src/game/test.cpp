@@ -1,6 +1,7 @@
-// This tells Catch to provide a main() - only do this in one cpp file
-//#define CATCH_CONFIG_MAIN
-//#include "catch.hpp"
+// Temporary stub to keep the test target linkable even though no real tests exist yet.
+int main() {
+    return 0;
+}
 
 /*
 unsigned int Factorial( unsigned int number ) {
@@ -57,4 +58,3 @@ TEST_CASE( "Factorials are computed", "[factorial]" ) {
         }
     }
 } */
-

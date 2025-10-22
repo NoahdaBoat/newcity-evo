@@ -1,6 +1,8 @@
 #include "string_proxy.hpp"
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE /* See feature_test_macros(7) */
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -81,8 +83,12 @@ char* sprintf_o(const char* format, ...) {
     char* str;// = strdup_s("");
     va_list args;
     va_start(args, format);
-    vasprintf(&str, format, args);
+    int result = vasprintf(&str, format, args);
     va_end(args);
+    if (result == -1) {
+        // Handle allocation failure
+        str = nullptr;
+    }
     return str;
 
     /*
@@ -216,8 +222,8 @@ bool stringEqualCaseInsensitive(const std::string& haystack,
 bool iequals(const std::string& a, const std::string& b) {
   return std::equal(a.begin(), a.end(),
                     b.begin(), b.end(),
-                    [](char a, char b) {
-                        return tolower(a) == tolower(b);
+                    [](char c1, char c2) {
+                        return tolower(c1) == tolower(c2);
                     });
 }
 

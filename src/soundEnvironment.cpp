@@ -84,10 +84,10 @@ void updateSoundEnvironment() {
   const char* designName = 0;
   bool upgraded = false;
   if (buildings.size() > 0) {
-    Building* b = getBuilding(buildings[randItem(buildings.size())]);
-    if (b->flags & _buildingLights) {
-      Design* d = getDesign(b->design);
-      zone = b->zone;
+    Building* building = getBuilding(buildings[randItem(buildings.size())]);
+    if (building->flags & _buildingLights) {
+      Design* d = getDesign(building->design);
+      zone = building->zone;
       designName = d->name;
       bool isRes = zone == ResidentialZone || zone == MixedUseZone;
       upgraded = (isRes && d->minDensity > .25) ||

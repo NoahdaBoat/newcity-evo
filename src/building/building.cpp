@@ -164,7 +164,7 @@ void setMaxLandValues(item building) {
   }
   float z = round(getDesignZ(b->design) / 4);
   item xSize = round(d->size.x/tileSize);
-  xSize = clamp(xSize, 0, maxTrackedXSize);
+  xSize = std::clamp(xSize, 0, maxTrackedXSize);
 
   for (int i = 0; i <= xSize; i++) {
     if (d->minDensity > maxDensity[b->zone][i]) {
@@ -268,8 +268,8 @@ item maybeAddBuilding(item lotNdx) {
   // Get a design
   econ = getEcon(bLoc);
   float density = getAdjustedDensity(lot->zone, bLoc);
-  float maxDensity = getLotMaxDensity(lotNdx)*.1f+.01f;
-  density = clamp(density, 0.f, maxDensity);
+  float lotMaxDensityValue = getLotMaxDensity(lotNdx)*.1f+.01f;
+  density = std::clamp(density, 0.f, lotMaxDensityValue);
   float landValue = getAdjustedLandValue(lot->zone, bLoc);
   item design = getRandomDesign(lot->zone, econ, density, landValue);
   //SPDLOG_INFO("maybeAddBuilding design:{} {}", design, econ);
@@ -901,7 +901,7 @@ void removeCollidingBuildings(Box b) {
   vector<item> collisions = collideBuilding(b, 0);
   for (int i = 0; i < collisions.size(); i++) {
     item bNdx = collisions[i];
-    Building* b = getBuilding(bNdx);
+    Building* building = getBuilding(bNdx);
     if (!canRemoveBuilding(bNdx)) continue;
     removeBuilding(bNdx);
   }
@@ -1738,7 +1738,7 @@ float getTargetIllumLevel(item buildingNdx) {
       getDesignNumHomes(b->design) * 1;
     targetIllum = numInside*6.f/capacity - getLightLevel()*4;
     targetIllum *= (1-1.25f*getLightLevel());
-    targetIllum = sqrt(clamp(targetIllum, 0.f, 100.f));
+    targetIllum = sqrt(std::clamp(targetIllum, 0.f, 100.f));
     if (numInside > 20 && targetIllum < 1) targetIllum = 1;
   }
 

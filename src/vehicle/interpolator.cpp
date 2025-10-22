@@ -69,7 +69,7 @@ void setKeyframe(item key, item ndx, GraphLocation val) {
   //SPDLOG_INFO("setKeyframe {} {} {} {} {}", key, ndx, keyOffset, n,
       //keyframes.size());
   keyframes.ensureSize(n+1);
-  val.dap = clamp(val.dap, 0.f, getLaneLength(val.lane));
+  val.dap = std::clamp(val.dap, 0.f, getLaneLength(val.lane));
   keyframes.set(n, val);
 }
 
@@ -95,7 +95,7 @@ void updateOneVehicleHeatmapsAndWear(item ndx, float duration,
   vLastSample.ensureSize(ndx+1);
   vec3 lastLoc = vLastSample[ndx];
   vLastSample.set(ndx, loc);
-  double distance = clamp(vecDistance(loc, lastLoc), 0.f, 100.f) / trafficRate;
+  double distance = std::clamp(vecDistance(loc, lastLoc), 0.f, 100.f) / trafficRate;
   double multiplier = duration / trafficRate;
   int type = getVehicleModel(v->model)->type;
   bool truck = type == VhTypeTruck || type == VhTypeTruckFront ||
@@ -370,7 +370,7 @@ void interpolateVehicles(double duration) {
   swapTime.ensureSize(numKeyframes);
 
   double iTime = lastInterpolateTime + duration;
-  iTime = clamp(iTime, 0., double(lastSimulateTime));
+  iTime = std::clamp(iTime, 0., double(lastSimulateTime));
   //iTime = mix(iTime, swapTime[numKeyframes/2], 0.001f);
   //duration = iTime - lastInterpolateTime;
   lastInterpolateTime = iTime;
@@ -396,7 +396,7 @@ void interpolateVehicles(double duration) {
   //}
 
   double alpha = (iTime - swapTime[key])/(swapTime[key1] - swapTime[key]);
-  //alpha = clamp(alpha, lastAlpha, 1.);
+  //alpha = std::clamp(alpha, lastAlpha, 1.);
   lastAlpha = alpha;
 
   //float time = getVehicleTime();

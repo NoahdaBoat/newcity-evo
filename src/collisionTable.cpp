@@ -87,11 +87,11 @@ void addToCollisionTable(CollisionIndex ci, Box b, item it) {
     for (int y = minY; y <= maxY; y++) {
       Cup<Collider>* chunkTable = &collisionTable[ci][xOff+y];
       if (boxIntersect(b, chunkBoxes[xOff + y])) {
-        Cup<Collider>* chunkTable = &collisionTable[ci][xOff+y];
+        Cup<Collider>* innerChunkTable = &collisionTable[ci][xOff+y];
         Collider c;
         c.b = b;
         c.it = it;
-        chunkTable->push_back(c);
+        innerChunkTable->push_back(c);
       }
     }
   }

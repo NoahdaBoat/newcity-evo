@@ -2,13 +2,11 @@
 
 #include "draw/camera.hpp"
 #include "game/feature.hpp"
-#include "game/game.hpp"
 #include "land.hpp"
 #include "lot.hpp"
 #include "plan.hpp"
 #include "platform/file.hpp"
 #include "tools/blueprint.hpp"
-#include "util.hpp"
 
 #include "spdlog/spdlog.h"
 
@@ -92,8 +90,8 @@ vector<item> getBPElems(Line l) {
     if (!(e->flags & _graphExists)) continue;
     bool valid = true;
 
-    for (int i = 0; i < 2; i++) {
-      Node* n = getNode(e->ends[i]);
+    for (int j = 0; j < 2; j++) {
+      Node* n = getNode(e->ends[j]);
       if (!(n->flags & _graphExists)) {
         valid = false;
         break;
@@ -571,10 +569,10 @@ Blueprint readBlueprint(FileBuffer* buffer) {
     signed char z = (nodeInfo >> 12) & bitMask4;
     int         p = (nodeInfo >> 10) & bitMask2; // Pillar
     //int       u = (nodeInfo >>  8) & bitMask2; // Unused
-    int         f = (nodeInfo >>  0) & bitMask8; // Config
+    int         config = (nodeInfo >>  0) & bitMask8; // Config
 
-    if (f >= configTableLength) {
-      SPDLOG_WARN("Bad Blueprint; node config:{}", f);
+    if (config >= configTableLength) {
+      SPDLOG_WARN("Bad Blueprint; node config:{}", config);
       freeBuffer(bpBuf);
       return result;
     }
@@ -593,10 +591,10 @@ Blueprint readBlueprint(FileBuffer* buffer) {
     unsigned int edgeInfo = fread_int(bpBuf);
     int n0 = (edgeInfo >> 20) & bitMask12;
     int n1 = (edgeInfo >>  8) & bitMask12;
-    int f  = (edgeInfo >>  0) & bitMask8;
+    int edgeConfig = (edgeInfo >>  0) & bitMask8;
 
-    if (f >= configTableLength || n0 >= numNodes || n1 >= numNodes) {
-      SPDLOG_WARN("Bad Blueprint; edge config:{} n0:{} n1:{}", f);
+    if (edgeConfig >= configTableLength || n0 >= numNodes || n1 >= numNodes) {
+      SPDLOG_WARN("Bad Blueprint; edge config:{} n0:{} n1:{}", edgeConfig);
       freeBuffer(bpBuf);
       return result;
     }

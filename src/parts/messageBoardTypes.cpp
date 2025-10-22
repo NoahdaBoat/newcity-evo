@@ -254,14 +254,14 @@ void achievementMessage(Part* result, Message message) {
 
   if (ach.text != 0 && strlen(ach.text) > 0) {
     float ySize = 0;
-    r(result, span(vec2(messagePadding,y), messagePadding,
+    r(result, textSpan(vec2(messagePadding,y), messagePadding,
           vec2(innerWidth, subScl), strdup_s(ach.text), &y));
     y += subScl;
   }
 
   if (ach.effectText != 0 && strlen(ach.effectText) > 0) {
     y += subScl;
-    r(result, span(vec2(messagePadding,y), messagePadding,
+    r(result, textSpan(vec2(messagePadding,y), messagePadding,
           vec2(innerWidth, subScl), strdup_s(ach.effectText), &y));
     y += subScl;
   }

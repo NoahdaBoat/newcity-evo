@@ -231,7 +231,7 @@ void makeRailroad(Mesh* mesh, LaneBlock* block, item laneNdx, vec3 offset,
   for (int j = 0; j <= numCurveSegments; j++) {
     float theta = float(j)/numCurveSegments;
     vec3 loc = interpolateSpline(lane->spline, theta) - offset;
-    vec3 n = normalize(lerp(norm0, norm1, theta));
+    vec3 n = normalize(vec3Lerp(norm0, norm1, theta));
     vec3 n0 = n * c(CLaneWidth) * .45f;
     vec3 n1 = uzNormal(n)*.25f;
     vec3 nr = n * c(CRailGauge) * .5f;
@@ -386,8 +386,8 @@ vector<vec3> renderNodeCore(item ndx, Mesh* mesh, Mesh* tunnelMesh,
 
       } else if (gameMode == ModeGame) {
         int culdesacVerticies = simple ? 6 : 24;
-        for(int i = 0; i < culdesacVerticies; i ++) {
-          float theta =  - i * pi_o * 1.25 / (culdesacVerticies - 1 ) +
+        for(int j = 0; j < culdesacVerticies; j ++) {
+          float theta =  - j * pi_o * 1.25 / (culdesacVerticies - 1 ) +
             pi_o * 0.625;
           vec3 rdir = rotateZ(nalong, theta);
           ring.push_back(center - rdir);
@@ -1196,24 +1196,24 @@ void makeTunnelEntrance(Mesh* mesh, Mesh* tunnelMesh,
 }
 
 void makeTicketMachine(Mesh* mesh, vec3 center,
-    vec3 ualong, vec3 unorm, vec3 up) {
+    vec3 ualong, vec3 unorm, vec3 upVec) {
   const vec3 bX = iconColorDarkBlue/spriteSheetSize;
   const vec3 wX = iconColorWhite/spriteSheetSize;
   makeAngledCube(mesh, center,
-      -ualong*1.4f, unorm*1.f, up*2.f, true, bX);
-  makeAngledCube(mesh, center-ualong*.2f+unorm*1.f+up*.2f,
-      -ualong*1.0f, unorm*.1f, up*1.6f, true, wX);
+      -ualong*1.4f, unorm*1.f, upVec*2.f, true, bX);
+  makeAngledCube(mesh, center-ualong*.2f+unorm*1.f+upVec*.2f,
+      -ualong*1.0f, unorm*.1f, upVec*1.6f, true, wX);
 }
 
 void makeExitTurnstile(Mesh* mesh, vec3 center,
-    vec3 along, vec3 right, vec3 up) {
+    vec3 along, vec3 right, vec3 upVec) {
   const vec3 bRight = right;
   const vec3 bX = iconColorDarkBlue/spriteSheetSize;
   const float tBWidth = 0.5f;
   const float tPLength = .7f;
   const float height = 2.f;
   const vec3 tAlong = bRight;
-  const vec3 tAxis = up*height;
+  const vec3 tAxis = upVec*height;
   const vec3 tX = iconColorGray/spriteSheetSize;
   const int num = 6;
   const vec3 tUp = tAxis/float(num);
@@ -1236,10 +1236,10 @@ void makeExitTurnstile(Mesh* mesh, vec3 center,
   }
 }
 
-void makeTurnstile(Mesh* mesh, vec3 center, vec3 along, vec3 right, vec3 up) {
+void makeTurnstile(Mesh* mesh, vec3 center, vec3 along, vec3 right, vec3 upVec) {
   const vec3 bAlong = along*2.f;
   const vec3 bRight = right;
-  const vec3 bUp = up;
+  const vec3 bUp = upVec;
   const vec3 bX = iconColorDarkBlue/spriteSheetSize;
   const float tBWidth = 0.65f;
   const float tPLength = .6f;
@@ -1260,14 +1260,14 @@ void makeTurnstile(Mesh* mesh, vec3 center, vec3 along, vec3 right, vec3 up) {
 }
 
 void makeTransitMap(Mesh* mesh, vec3 center,
-    vec3 along, vec3 right, vec3 up) {
+    vec3 along, vec3 right, vec3 upVec) {
   const vec3 bAlong = along*2.25f;
   const vec3 bRight = right*.5f;
-  const vec3 bUp = up*.25f;
+  const vec3 bUp = upVec*.25f;
   const vec3 bX = (iconZoneColor[6]+vec3(.5,.5,0))/spriteSheetSize;
   const vec3 sAlong = along*2.f;
   const vec3 sRight = right*.25f;
-  const vec3 sUp = up*2.f;
+  const vec3 sUp = upVec*2.f;
   const vec3 sX = iconColorWhite/spriteSheetSize;
   makeAngledCube(mesh, center-bAlong*.5f-bRight*.5f, bAlong, bRight, bUp, true,
       bX);
@@ -1497,9 +1497,9 @@ void renderEdge(item edgeIndex) {
           bool anyPillar = false;
           const float pillarSpacing = 25;
           const float numPillars = ceil(amount/pillarSpacing);
-          for (int i = 0; i < numPillars; i++) {
+          for (int j = 0; j < numPillars; j++) {
             anyPillar = makeSupportPillar(edgeIndex, mesh, 0,
-                btl+right*.5f - unit*(pillarSpacing*i), center) || anyPillar;
+                btl+right*.5f - unit*(pillarSpacing*j), center) || anyPillar;
           }
 
           if (bridgeType != 1 && !isSegSidewalk) {
@@ -1655,7 +1655,6 @@ void renderEdge(item edgeIndex) {
         vec3 mbl = center1 - mnorm;
         vec3 gup = vec3(0,0,0.5);
         vec3 mwup = vec3(0,0,0.75);
-        vec3 up = vec3(0,0,1);
         vec3 btrans = btl - bbl;
 
         if (seg.type != BSTLand) {
@@ -1746,9 +1745,9 @@ void renderEdge(item edgeIndex) {
 
     if (roadLength > 50) {
       Line iconLine = iconToSpritesheet(iconTurn[2], 0.f);
-      float iconX = iconLine.end.x - iconLine.start.x;
-      iconLine.start.x += iconX*.25f;
-      iconLine.end.x -= iconX*.25f;
+      float iconXSize = iconLine.end.x - iconLine.start.x;
+      iconLine.start.x += iconXSize*.25f;
+      iconLine.end.x -= iconXSize*.25f;
       vec3 ialong = ualong*width;
       for (int x = 0; x < 2; x ++) {
         vec3 start = br - ialong*2.f - ualong*25.f;
@@ -1886,8 +1885,8 @@ void renderEdge(item edgeIndex) {
     }
     bool hasExpwy = isExpwy;
     if (!hasExpwy) {
-      for (int i = 0; i < edges.size(); i++) {
-        if (getEdge(edges[i])->config.type == ConfigTypeExpressway) {
+      for (int j = 0; j < edges.size(); j++) {
+        if (getEdge(edges[j])->config.type == ConfigTypeExpressway) {
           hasExpwy = true;
           break;
         }
@@ -2011,7 +2010,7 @@ void renderEdge(item edgeIndex) {
   // Make name
   if (showBody && length(transverse) > 50 &&
       edge->name != 0 && edge->name[0] != 0 && isRoad) {
-    vec3 padding = paddingNorm*fnumLanes + median*.5f;
+    vec3 namePadding = paddingNorm*fnumLanes + median*.5f;
 
     for (int i = 0; i < 2; i++) {
       item blockNdx = edge->laneBlocks[i];
@@ -2209,7 +2208,7 @@ void renderLane(Mesh* mesh, item laneNdx, float start, float end,
   for (int j = 0; j <= numCurveSegments; j++) {
     float theta = fraction*float(j)/numCurveSegments + basis;
     vec3 loc = interpolateSpline(lane->spline, theta) - offset;
-    vec3 n = normalize(lerp(norm0, norm1, theta)) * width;
+    vec3 n = normalize(vec3Lerp(norm0, norm1, theta)) * width;
     if (laneOffset != 0) loc += n*float(laneOffset)*trafficHandedness();
     locs[j*2+0] = loc - n;
     locs[j*2+1] = loc + n;

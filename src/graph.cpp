@@ -2568,7 +2568,7 @@ void setWear(item ndx, double amount) {
   Edge* edge = getEdge(ndx);
   edge->wear = amount;
   float oldSpeedLimit = speedLimits[edge->config.speedLimit];
-  float k = glm::clamp(1. - amount*1.5, 0., 1.);
+  float k = std::clamp(1. - amount*1.5, 0., 1.);
   float newSpeedLimit = std::min(double(oldSpeedLimit),
     k*(oldSpeedLimit*1.1 - minSpeed)+minSpeed);
   //float k = (oldSpeedLimit - newSpeedLimit)/(oldSpeedLimit-minSpeed);
@@ -2816,10 +2816,10 @@ void updateGraphVisuals(bool firstPass) {
           ratio = traversalTime / timeEstimate;
         }
 
-        accum += clamp(ratio - 2, 0.f, 100.f);
+        accum += std::clamp(ratio - 2, 0.f, 100.f);
       }
 
-      float k = clamp(accum/laneBlocks.size()*0.05f, 0.f, 1.f);
+      float k = std::clamp(accum/laneBlocks.size()*0.05f, 0.f, 1.f);
       k = k*k;
       if (culdesac) k = 0; // Supress a bug where culdesacs appear to have traffic
       entity->dataFlags &= ~(255 << 16);

@@ -144,7 +144,7 @@ Part* amenityInfoPart(vec2 loc, vec2 size,
     float aspect = imgDim.x / imgDim.y;
     float sizeY = size.y-y-padding;
     float maxX = std::min(.5f*(pnl->dim.end.x-padding*2), sizeY*aspect);
-    float imgSizeX = clamp(size.x, 0.f, maxX);
+    float imgSizeX = std::clamp(size.x, 0.f, maxX);
     Part* img = r(pnl, image(vec2(0,y), imgSizeX,
           strdup_s(imageFile.c_str()), &sizeY));
     img->dim.start.z -= 0.5f;
@@ -246,7 +246,7 @@ void amenityStats(Part* pnl, vec2 loc, vec2 size, item designNdx) {
   x += 0.1;
 
   float spaceX = size.x+loc.x-x;
-  float iconX = x + spaceX*.5f - 1.25f;
+  float iconXPos = x + spaceX*.5f - 1.25f;
   float spanSpace = size.x + loc.x;
   float smallTxt = 0.55;
 
@@ -300,21 +300,21 @@ void amenityStats(Part* pnl, vec2 loc, vec2 size, item designNdx) {
 
   } else {
     float startX = x;
-    float x = startX+padding;
+    float currentX = startX+padding;
 
     bool isHotel = d->flags & _designIsHotel;
     if (anyFam) {
       char* famStr = sprintf_o("%d", d->numFamilies);
       float strX = stringWidth(famStr);
-      if (x+strX+1 > spanSpace) {
+      if (currentX+strX+1 > spanSpace) {
         y ++;
-        x = startX+padding;
+        currentX = startX+padding;
       }
 
-      r(pnl, labelRight(vec2(x, y), vec2(strX,1), famStr));
-      r(pnl, icon(vec2(x+2, y), vec2(1,1),
+      r(pnl, labelRight(vec2(currentX, y), vec2(strX,1), famStr));
+      r(pnl, icon(vec2(currentX+2, y), vec2(1,1),
             isHotel ? iconHotelRoom : iconFamily));
-      x+=strX+1;
+      currentX+=strX+1;
     }
 
     for (int i = 0; i < 4; i++) {
@@ -322,16 +322,16 @@ void amenityStats(Part* pnl, vec2 loc, vec2 size, item designNdx) {
       if (isDesignEducation(designNdx) && i != Retail) continue;
       char* bizStr = sprintf_o("%d", d->numBusinesses[i]);
       float strX = stringWidth(bizStr);
-      if (x+strX+1 > spanSpace) {
+      if (currentX+strX+1 > spanSpace) {
         y ++;
-        x = startX+padding;
+        currentX = startX+padding;
       }
 
-      r(pnl, labelRight(vec2(x, y), vec2(strX,1), bizStr));
-      r(pnl, icon(vec2(x+strX, y), vec2(1,1), iconBusinessType[i]));
-      x+=strX+1+padding;
+      r(pnl, labelRight(vec2(currentX, y), vec2(strX,1), bizStr));
+      r(pnl, icon(vec2(currentX+strX, y), vec2(1,1), iconBusinessType[i]));
+      currentX+=strX+1+padding;
     }
-    if (x > startX+padding) y += 1 + padding;
+    if (currentX > startX+padding) y += 1 + padding;
     x = startX;
 
     if (noHealth && healthCare) {

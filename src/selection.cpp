@@ -67,19 +67,19 @@ void setHighlight(bool highlight, item querySelectionType,
   }
 }
 
-void setRedHighlight(bool highlight, item selectionType, item selection) {
+void setRedHighlight(bool highlight, item selType, item selection) {
   if (selection == 0) {
     return;
   }
 
-  setHighlight(highlight, selectionType, selection);
+  setHighlight(highlight, selType, selection);
 
-  if (selectionType == SelectionPillar) {
+  if (selType == SelectionPillar) {
     Pillar* pillar = getPillar(selection);
     setEntityRedHighlight(pillar->entity, highlight);
-  } else if (selectionType == SelectionBuilding) {
+  } else if (selType == SelectionBuilding) {
     setBuildingRedHighlight(selection, highlight);
-  } else if (selectionType == SelectionStop) {
+  } else if (selType == SelectionStop) {
     setStopRedHighlight(selection, highlight);
   } else if (selection < 0) {
     Node* node = getNode(selection);

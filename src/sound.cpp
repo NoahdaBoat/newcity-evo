@@ -114,12 +114,12 @@ void resetSound() {
   float origMaster = soundData.volume[MasterVolume];
   float fadeOutTime = 1;
   float fadeOutStepLength = 1.0/60.0;
-  auto sleepTime = std::chrono::microseconds(int(fadeOutStepLength * 1000000));
+  auto sleepDuration = std::chrono::microseconds(int(fadeOutStepLength * 1000000));
   for (float i = 0; i < fadeOutTime; i += fadeOutStepLength) {
     soundData.volume[MasterVolume] = origMaster * (1-i/fadeOutTime);
     soundData.updateVolumes = true;
     updateSound();
-    std::this_thread::sleep_for(sleepTime);
+    std::this_thread::sleep_for(sleepDuration);
   }
   SPDLOG_INFO("Fade Out Done");
 
@@ -353,8 +353,8 @@ void initSound() {
   SPDLOG_INFO("Initialzing Sound");
   while(soundResetting) {
     SPDLOG_INFO("Resetting Sound");
-    auto sleepTime = std::chrono::milliseconds(10);
-    std::this_thread::sleep_for(sleepTime);
+    auto sleepDuration = std::chrono::milliseconds(10);
+    std::this_thread::sleep_for(sleepDuration);
   }
   //testSoundError("Error while initializing/resetting OpenAL");
   // alGetError();
@@ -638,14 +638,17 @@ void soundLoop() {
   if (!c(CEnableSounds)) return;
 
   initSound();
-  auto sleepTime = std::chrono::milliseconds(2);
+  auto sleepDuration = std::chrono::milliseconds(2);
   while(shouldContinue) {
     SoundData data;
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstringop-overflow"
     if (soundDataQueue.pop(&data, 1)) {
+    #pragma GCC diagnostic pop
       soundData = data;
       updateSound();
     }
-    std::this_thread::sleep_for(sleepTime);
+    std::this_thread::sleep_for(sleepDuration);
   }
 }
 

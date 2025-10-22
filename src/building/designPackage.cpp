@@ -9,7 +9,6 @@
 #include "../draw/entity.hpp"
 #include "../game/game.hpp"
 #include "../parts/mainMenu.hpp"
-#include "../pool.hpp"
 #include "../platform/file.hpp"
 #include "../platform/lookup.hpp"
 #include "../string_proxy.hpp"
@@ -149,7 +148,7 @@ void assignBuildingTexture(item buildingNdx) {
       item illumS = package->illumTextures.size();
       if (illumS > 0) {
         float targetIllum = getTargetIllumLevel(buildingNdx);
-        targetIllum = round(clamp(targetIllum, 0.f, float(illumS-1)));
+        targetIllum = round(std::clamp(targetIllum, 0.f, float(illumS-1)));
 
         item illumNdx = package->illumTextures[targetIllum];
         Texture* albedoTex = getTexture(albedoNdx);
@@ -303,8 +302,8 @@ void deleteDesignPackageTexture(item buildingNdx, bool illum) {
 
     Cup<item>* list = !illum ? &package->albedoTextures : &package->illumTextures;
     for (int i = 0; i < list->size(); i++) {
-      Texture* tex = getTexture(list->at(i));
-      if (tex->textureID == glId) {
+      Texture* listTex = getTexture(list->at(i));
+      if (listTex->textureID == glId) {
         list->remove(i);
         matches++;
         i --;

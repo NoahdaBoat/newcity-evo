@@ -586,10 +586,10 @@ void occupyLot(item lotNdx, item building) {
   renderLot(lotNdx);
 }
 
-void occupyLots(vector<item> lots, item building) {
+void occupyLots(vector<item> lotList, item building) {
   Building* b0 = getBuilding(building);
-  for (int i=0; i < lots.size(); i++) {
-    item ndx = lots[i];
+  for (int i=0; i < lotList.size(); i++) {
+    item ndx = lotList[i];
     Lot* lot = getLot(ndx);
 
     if (lot->occupant) {

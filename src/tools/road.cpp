@@ -474,8 +474,8 @@ void renderRoadCursor() {
       setEntityVisible(builderTextEntity, true);
 
       char* resString;
-      char* moneyString = "";
-      char* speedString = "";
+      char* moneyString = (char*)"";
+      char* speedString = (char*)"";
       if (cost > 1000) {
         char* mStr = printMoneyString(cost);
         moneyString = sprintf_o(" %s to Repair", mStr);

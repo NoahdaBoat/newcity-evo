@@ -369,7 +369,7 @@ void updateVehiclePhysicsSimple(item ndx,
   laneLoc = graphLocation(laneLoc.lane, physicalLoc);
   vehicle->laneLoc = laneLoc;
   vec3 alignedLoc = getLocation(laneLoc) + laneOffset;
-  vec3 newLoc = mix(physicalLoc, alignedLoc, clamp(duration, 0.f, .5f));
+  vec3 newLoc = mix(physicalLoc, alignedLoc, std::clamp(duration, 0.f, .5f));
   vehicle->location = newLoc;
   //vec3 laneVec = normalize(-getLocation(laneLoc) +
       //getLocation(graphLocation(laneLoc.lane, laneLoc.dap+5)));
@@ -461,7 +461,7 @@ void updateVehiclePhysics(item ndx, float duration, float mergeSpeed,
     float pitch = vehicle->pitch*.9f;
     pitch += slopeTheta * .1f;
     pitch += (-oldSpeed)/duration*0.0002f;
-    pitch = clamp(pitch, -.25f, .25f);
+    pitch = std::clamp(pitch, -.25f, .25f);
     vehicle->pitch = pitch;
     return;
   }
@@ -493,7 +493,7 @@ void updateVehiclePhysics(item ndx, float duration, float mergeSpeed,
         } else {
           turnAmount *= randFloat(0.2, 0.8);
         }
-        turnAmount = clamp(turnAmount, -.5f, .5f);
+        turnAmount = std::clamp(turnAmount, -.5f, .5f);
         yaw += turnAmount;
         if (yaw > pi_o*2) {
           yaw -= pi_o*2;
@@ -570,7 +570,7 @@ void updateVehiclePhysics(item ndx, float duration, float mergeSpeed,
   } else if (brakingDistance*2 > maxAdvance) {
     targetPedal = -2*brakingDistance / maxAdvance;
   } else {
-    targetPedal = clamp((targetSpeed - speed) / targetSpeed, -.5f, 1.f);
+    targetPedal = std::clamp((targetSpeed - speed) / targetSpeed, -.5f, 1.f);
   }
 
   // Apply engine or brake energy
@@ -614,7 +614,7 @@ void updateVehiclePhysics(item ndx, float duration, float mergeSpeed,
   float pitch = vehicle->pitch*.9f;
   pitch += slopeTheta * .1f;
   pitch += (speed-oldSpeed)/duration*0.0002f;
-  pitch = clamp(pitch, -.25f, .25f);
+  pitch = std::clamp(pitch, -.25f, .25f);
 
   // Write everything back to the vehicle
   vehicle->yaw = yaw;

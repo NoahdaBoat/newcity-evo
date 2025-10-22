@@ -43,7 +43,7 @@
 #include "textBox.hpp"
 
 #include "spdlog/spdlog.h"
-#include <math.h>
+#include <cmath>
 
 const float scl = .8f;
 const float sclPad = .85f;
@@ -848,7 +848,7 @@ void personPanel(Part* result, Person* selection) {
     item activity = indices[i];
     float score = scores[activity];
     if (score < -1) continue;
-    score = clamp(score, -1.f, 9.99f);
+    score = std::clamp(score, -1.f, 9.99f);
 
     char* actName = 0;
     if (activity == selection->activity) {

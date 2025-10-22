@@ -68,7 +68,9 @@ bool conCallbackCapture(std::string data) {
   char* filenameStr = fbStr;
   for (; filenameStr[0] != '\0' && filenameStr[0] != ' '; filenameStr++);
   if (filenameStr[0] == ' ') filenameStr++;
-  if (filenameStr[0] == '\0') filenameStr = "capture.png";
+  if (filenameStr[0] == '\0') {
+    filenameStr = (char*)"capture.png";
+  }
   item fbNdx = 0;
   sscanf(fbStr, "%d", &fbNdx);
 

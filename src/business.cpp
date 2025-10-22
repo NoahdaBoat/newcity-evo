@@ -663,7 +663,7 @@ void updateBusinessTypeDemand(item econ) {
         float incomePerBiz = retailEconomy / numRetailBiz;
         float incomeTarget = c(CRetailEconomyPerBiz) * getInflation();
         float economyEffect = incomePerBiz / incomeTarget;
-        economyEffect = clamp(economyEffect, 0.1f, 2.f);
+        economyEffect = std::clamp(economyEffect, 0.1f, 2.f);
         result *= economyEffect;
 
         if (logBizGrowthData) {
@@ -686,12 +686,12 @@ void updateBusinessTypeDemand(item econ) {
 
       float maxOpen = c(CMaxOpenJobs);
       maxOpen += getEffectValue(BusinessEffect) * c(CBizPerBizPoint) * getStatistic(econ, (Statistic)(COfficeNoEduPositions+j));
-      float jobsEffect = 1 - clamp(openPercent / maxOpen, 0.f, 1.f);
+      float jobsEffect = 1 - std::clamp(openPercent / maxOpen, 0.f, 1.f);
       if (totalOpen < 1000) {
-        jobsEffect = clamp(jobsEffect, 1-totalOpen/1000.f, 1.f);
+        jobsEffect = std::clamp(jobsEffect, 1-totalOpen/1000.f, 1.f);
       }
       result *= jobsEffect;
-      result = clamp(result, 0.f, 1.f);
+      result = std::clamp(result, 0.f, 1.f);
       if (logBizGrowthData) {
         SPDLOG_INFO("econ:{} {}:{} edu:{} openJobs:{:.2f}% effect:{:.2f}%",
           econ, i, businessTypeName[i], j, openPercent*100, jobsEffect*100);
@@ -735,7 +735,7 @@ void updateBusinessTypeDemand(item econ) {
     }
 
     float target = 2+emptyTarget*tenancies*2;
-    result *= clamp((target - empties)/nonZero(target), 0.f, 1.f);
+    result *= std::clamp((target - empties)/nonZero(target), 0.f, 1.f);
     if (logBizGrowthData) {
       SPDLOG_INFO("{}: {} empties {} {} {} {}", businessTypeName[i], result,
           emptyTarget, tenancies, target, empties);
@@ -803,7 +803,7 @@ void updateBusinessTypeDemand_legacy(item econ) {
         float incomePerBiz = retailEconomy / numRetailBiz;
         float incomeTarget = c(CRetailEconomyPerBiz) * getInflation();
         float economyEffect = incomePerBiz / incomeTarget;
-        economyEffect = clamp(economyEffect, 0.f, 2.f);
+        economyEffect = std::clamp(economyEffect, 0.f, 2.f);
         result *= economyEffect;
 
         if (logBizGrowthData) {
@@ -820,7 +820,7 @@ void updateBusinessTypeDemand_legacy(item econ) {
     int numBiz = getStatistic(econ, NumBusinesses);
     float retailRatio = numBiz == 0 ? 0.5 : getStatistic(econ, NumRetailBiz) /
       nonZero(getStatistic(econ, NumBusinesses));
-    float popFactor = clamp(getStatistic(econ, Population)/200000.f, 0.f, 1.f);
+    float popFactor = std::clamp(getStatistic(econ, Population)/200000.f, 0.f, 1.f);
     float targetRatio = mix(c(CRetailRatio0), c(CRetailRatio200), popFactor);
 
     if (logBizGrowthData) {
@@ -836,9 +836,9 @@ void updateBusinessTypeDemand_legacy(item econ) {
       targetRatio = 1-targetRatio;
     }
 
-    float ratioEffect = clamp(1.5f - retailRatio/targetRatio, 0.0f, 1.5f);
+    float ratioEffect = std::clamp(1.5f - retailRatio/targetRatio, 0.0f, 1.5f);
     if (numPeople(econ) < 1480 && i != Retail) {
-      ratioEffect = clamp(ratioEffect, 0.2f, 1.5f);
+      ratioEffect = std::clamp(ratioEffect, 0.2f, 1.5f);
     }
     result *= ratioEffect;
     if (logBizGrowthData) {
@@ -855,12 +855,12 @@ void updateBusinessTypeDemand_legacy(item econ) {
       jobs += getStatistic(econ, (Statistic)(NumNoEduPositions+j));
     }
     float openPercent = openings/nonZero(jobs);
-    float jobsEffect = 1 - clamp(openPercent / c(CMaxOpenJobs), 0.f, 1.f);
+    float jobsEffect = 1 - std::clamp(openPercent / c(CMaxOpenJobs), 0.f, 1.f);
     //if (numPeople(econ) < 980 && i == Farm) {
       //jobsEffect = mix(1.f, jobsEffect, numPeople(econ)/980.f);
     //}
     result *= jobsEffect;
-    result = clamp(result, 0.f, 1.f);
+    result = std::clamp(result, 0.f, 1.f);
 
     //if ((i == Factory || i == Office) && numPeople(econ) < 1000) {
       //result = 0;
@@ -899,7 +899,7 @@ void updateBusinessTypeDemand_legacy(item econ) {
     }
 
     float target = 2+emptyTarget*tenancies*2;
-    result *= clamp((target - empties)/nonZero(target), 0.f, 1.f);
+    result *= std::clamp((target - empties)/nonZero(target), 0.f, 1.f);
     if (logBizGrowthData) {
       SPDLOG_INFO("{}: {} empties {} {} {} {}", businessTypeName[i], result,
           emptyTarget, tenancies, target, empties);

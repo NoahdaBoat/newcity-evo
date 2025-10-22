@@ -19,7 +19,7 @@ struct Ring {
 Mesh* mesh;
 Ring ring;
 
-RingPoint ringPoint(Ring* ring, vec3 place, vec3 norm,
+RingPoint ringPoint(Ring* ringData, vec3 place, vec3 norm,
     vec3 normTrapLoc, uint32_t flags) {
   RingPoint result;
   result.flags = flags;
@@ -27,31 +27,31 @@ RingPoint ringPoint(Ring* ring, vec3 place, vec3 norm,
   result.norm = normalize(norm);
   result.normTrap = normTrapLoc;
   result.normTrapDist = length(normTrapLoc - place);
-  ring->points.push_back(result);
+  ringData->points.push_back(result);
   return result;
 }
 
-RingPoint ringPoint(Ring* ring, vec3 place, vec3 norm, uint32_t flags) {
+RingPoint ringPoint(Ring* ringData, vec3 place, vec3 norm, uint32_t flags) {
   RingPoint result;
   result.flags = flags;
   result.place = place;
   result.norm = normalize(norm);
   result.normTrap = vec3(0,0,0);
   result.normTrapDist = -1;
-  ring->points.push_back(result);
+  ringData->points.push_back(result);
   return result;
 }
 
-vector<vec3> getRingVec3s(Ring ring) {
+vector<vec3> getRingVec3s(Ring ringData) {
   vector<vec3> result;
-  for (int i = 0; i < ring.points.size(); i++) {
-    result.push_back(ring.points[i].place);
+  for (int i = 0; i < ringData.points.size(); i++) {
+    result.push_back(ringData.points[i].place);
   }
   return result;
 }
 
-vec3 convertRingPoint(Ring ring, int i, vec3 place) {
-  RingPoint p = ring.points[i];
+vec3 convertRingPoint(Ring ringData, int i, vec3 place) {
+  RingPoint p = ringData.points[i];
   float x = place.x;
   vec3 loc = p.place;
   vec3 norm = p.norm;
@@ -68,8 +68,8 @@ vec3 convertRingPoint(Ring ring, int i, vec3 place) {
   return loc;
 }
 
-vec3 covertRingNorm(Ring ring, int i, vec3 along) {
-  RingPoint p = ring.points[i];
+vec3 covertRingNorm(Ring ringData, int i, vec3 along) {
+  RingPoint p = ringData.points[i];
   return normalize(p.norm*along.x + vec3(0,0,1)*along.z);
 }
 
@@ -113,23 +113,23 @@ void makeRing(vec3 start, vec3 along, vec3 tx) {
 
 Ring getEdgeRing(item edgeNdx) {
   Edge* edge = getEdge(edgeNdx);
-  Ring ring;
-  ring.center = (edge->line.start + edge->line.end) * .5f;
+  Ring edgeRing;
+  edgeRing.center = (edge->line.start + edge->line.end) * .5f;
   float width = edgeWidth(edgeNdx);
   vec3 norm = uzNormal(edge->line.end - edge->line.start) * width;
-  ringPoint(&ring, edge->line.start+norm,  norm, 0);
-  ringPoint(&ring, edge->line.start-norm, -norm, _rpIsEnd);
-  ringPoint(&ring, edge->line.end+norm,    norm, 0);
-  ringPoint(&ring, edge->line.end-norm,   -norm, _rpIsEnd);
-  return ring;
+  ringPoint(&edgeRing, edge->line.start+norm,  norm, 0);
+  ringPoint(&edgeRing, edge->line.start-norm, -norm, _rpIsEnd);
+  ringPoint(&edgeRing, edge->line.end+norm,    norm, 0);
+  ringPoint(&edgeRing, edge->line.end-norm,   -norm, _rpIsEnd);
+  return edgeRing;
 }
 
 Ring getNodeRing(item nodeNdx, bool simple) {
   Node* node = getNode(nodeNdx);
   vector<item> edges = getRenderableEdges(nodeNdx);
-  Ring ring;
+  Ring nodeRing;
   vec3 center = node->center;
-  ring.center = center;
+  nodeRing.center = center;
   int numEdges = edges.size();
   int gameMode = getGameMode();
   bool isExpwy = node->config.type == ConfigTypeExpressway;
@@ -150,21 +150,21 @@ Ring getNodeRing(item nodeNdx, bool simple) {
       vec3 unorm = normalize(vec3(dir.y, -dir.x, 0));
       vec3 norm = unorm * (edgeWidth(edges[i])*.5f);
       vec3 loc = center + nalong;
-      ringPoint(&ring, loc - norm, -norm, 0);
-      ringPoint(&ring, loc + norm,  norm, _rpIsEnd);
+      ringPoint(&nodeRing, loc - norm, -norm, 0);
+      ringPoint(&nodeRing, loc + norm,  norm, _rpIsEnd);
 
       if (gameMode == ModeTest || isExpwy) {
         loc = center - nalong;
-        ringPoint(&ring, loc + norm,  norm, 0);
-        ringPoint(&ring, loc - norm, -norm, 0);
+        ringPoint(&nodeRing, loc + norm,  norm, 0);
+        ringPoint(&nodeRing, loc - norm, -norm, 0);
 
       } else if (gameMode == ModeGame) {
         int culdesacVerticies = simple ? 6 : 24;
-        for(int i = 0; i < culdesacVerticies; i ++) {
-          float theta =  - i * pi_o * 1.25 / (culdesacVerticies - 1 ) +
+        for(int j = 0; j < culdesacVerticies; j ++) {
+          float theta =  - j * pi_o * 1.25 / (culdesacVerticies - 1 ) +
             pi_o * 0.625;
           vec3 rdir = rotateZ(nalong, theta);
-          ringPoint(&ring, center - rdir, -rdir, 0);
+          ringPoint(&nodeRing, center - rdir, -rdir, 0);
         }
       }
 
@@ -205,12 +205,12 @@ Ring getNodeRing(item nodeNdx, bool simple) {
         vec3 loc = interpolateSpline(s, theta);
         vec3 norm = cnorms[0] * (1-theta) + cnorms[1] * theta;
         uint32_t flags = (j == 0) ? _rpIsEnd : 0;
-        ringPoint(&ring, loc, norm, normTrap, 0);
+        ringPoint(&nodeRing, loc, norm, normTrap, 0);
       }
     }
   }
 
-  return ring;
+  return nodeRing;
 }
 
 void renderGraphElement(item ndx, vec3 node_tx) {

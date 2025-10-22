@@ -26,7 +26,7 @@ Part* spanLine(vec2 start, vec2 size, string line, bool center) {
   return l;
 }
 
-Part* span(vec2 start, float indent, vec2 size, char* text, vec2* end,
+Part* textSpan(vec2 start, float indent, vec2 size, char* text, vec2* end,
     bool center) {
   Part* result = part(vec2(0, 0));
   float padding = size.y*0.125;
@@ -114,24 +114,24 @@ Part* span(vec2 start, float indent, vec2 size, char* text, vec2* end,
   return result;
 }
 
-Part* span(vec2 start, float indent, vec2 size, char* text, vec2* end) {
-  return span(start, indent, size, text, end, false);
+Part* textSpan(vec2 start, float indent, vec2 size, char* text, vec2* end) {
+  return textSpan(start, indent, size, text, end, false);
 }
 
-Part* span(vec2 start, float indent, vec2 size, char* text, float* y) {
+Part* textSpan(vec2 start, float indent, vec2 size, char* text, float* y) {
   vec2 end;
-  Part* result = span(start, indent, size, text, &end, false);
+  Part* result = textSpan(start, indent, size, text, &end, false);
   *y = end.y;
   return result;
 }
 
 Part* spanCenter(vec2 start, float indent, vec2 size, char* text, vec2* end) {
-  return span(start, indent, size, text, end, true);
+  return textSpan(start, indent, size, text, end, true);
 }
 
 Part* spanCenter(vec2 start, float indent, vec2 size, char* text, float* y) {
   vec2 end;
-  Part* result = span(start, indent, size, text, &end, true);
+  Part* result = textSpan(start, indent, size, text, &end, true);
   *y = end.y;
   return result;
 }

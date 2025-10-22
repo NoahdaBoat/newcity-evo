@@ -392,7 +392,7 @@ void computeCameraMatricies(Camera* camera, vec3 mirror, float angle,
   if (c(CMeshQuality) <= 0) {
     camera->resolutionDistance = 50000;
   } else {
-    camera->resolutionDistance = clamp(camera->distance *
+    camera->resolutionDistance = std::clamp(camera->distance *
         pow(aspectFactor,.5) * resolutionDistanceMult / c(CMeshQuality),
       0.1, 50000.);
   }
@@ -1050,7 +1050,7 @@ void updateCamera(double duration) {
       (cameraTarget.target.y-mapSize-mapBuffer);
 
   double alpha = c(CCameraLag) == 0 ? 1 :
-    clamp(duration/c(CCameraLag), 0., 0.2);
+    std::clamp(duration/c(CCameraLag), 0., 0.2);
 
   camera.light = getLightInformation();
   if (isUndergroundView()) {
@@ -1116,9 +1116,9 @@ void updateCamera(double duration) {
     moveRain(shift);
   //}
 
-  //float durationError = clamp(getLastDurationError()+.5f, -.05f, .05f);
+  //float durationError = std::clamp(getLastDurationError()+.5f, -.05f, .05f);
   //resDistMultTarget += durationError;
-  //resDistMultTarget = clamp(resDistMultTarget, 0.01f, 10.f);
+  //resDistMultTarget = std::clamp(resDistMultTarget, 0.01f, 10.f);
   //resolutionDistanceMult = mix(resolutionDistanceMult, resDistMultTarget,
       //duration);
   //SPDLOG_INFO("resDistMult {} durError {}", resolutionDistanceMult,

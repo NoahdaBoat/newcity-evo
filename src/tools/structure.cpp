@@ -189,7 +189,7 @@ void structure_mouse_move_callback(InputEvent event) {
         float slope = z/12.f + defaultRoofSlopeForType(s->roofType);
         if (slope < 0) slope = 0;
         s->roofSlope = slope;
-        //s->roofSlope = clamp(slope, 0.f, 2.f);
+        //s->roofSlope = std::clamp(slope, 0.f, 2.f);
 
       } else {
         vec3 pl = linePlaneIntersect(l, loc, along);
@@ -197,10 +197,10 @@ void structure_mouse_move_callback(InputEvent event) {
         if (pl.x != -1) {
           vec3 pv = pl - loc;
           float x = designerSnap(length(vec2(pv))*2);
-          x = clamp(x, c(CDesignerGridSize), maxDist);
+          x = std::clamp(x, c(CDesignerGridSize), maxDist);
           s->size.x = x;
           float z = round(pv.z / floorSize)*floorSize;
-          z = clamp(z, floorSize*.5f, maxDistZ);
+          z = std::clamp(z, floorSize*.5f, maxDistZ);
           s->size.z = z;
         }
       }

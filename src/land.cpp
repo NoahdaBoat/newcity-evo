@@ -651,7 +651,7 @@ vec3 pointOnLand(vec3 point) {
   float z01 = getHeight(x,   y+1);
   float z11 = getHeight(x+1, y+1);
 
-  point.z = lerp(lerp(z00, z10, mx), lerp(z01, z11, mx), my);
+  point.z = ::std::lerp(::std::lerp(z00, z10, mx), ::std::lerp(z01, z11, mx), my);
   return point;
 }
 
@@ -665,7 +665,7 @@ vec3 pointOnLandNatural(vec3 point) {
   float z01 = getNaturalHeight(x,   y+1);
   float z11 = getNaturalHeight(x+1, y+1);
 
-  point.z = lerp(lerp(z00, z10, mx), lerp(z01, z11, mx), my);
+  point.z = ::std::lerp(::std::lerp(z00, z10, mx), ::std::lerp(z01, z11, mx), my);
   return point;
 }
 
@@ -1271,7 +1271,7 @@ float setNaturalHeight(vec3 p, float radius, bool smooth) {
       if (smooth) {
         float smoothDist = distFromCener/radius*.5f;
         smoothDist = pow(smoothDist, 0.1);
-        smoothDist = clamp(smoothDist, 0.9f, 1.f);
+        smoothDist = std::clamp(smoothDist, 0.9f, 1.f);
         z = mix(p.z, natZ, smoothDist);
 
       } else {

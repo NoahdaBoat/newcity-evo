@@ -56,7 +56,7 @@ bool generateMap(Part* part, InputEvent event) {
   char* derefHSeed = hSeedState.text != 0 ? *hSeedState.text : 0;
   if(derefHSeed != 0) {
     int64_t hSeedVal = -1;
-    sscanf(derefHSeed, "%lld", &hSeedVal);
+    sscanf(derefHSeed, "%ld", &hSeedVal);
     if(hSeedVal >= 0) {
       SPDLOG_INFO("Setting nextLandConfig seed to {}", hSeedVal);
       nextLandConfig->heightSeed = hSeedVal;

@@ -30,14 +30,12 @@ bool isInVector(vector<item>* v, item n) {
   return false;
 }
 
-// Function to linearly interpolate between a0 and a1
-// Weight w should be in the range [0.0, 1.0]
-float lerp(float a0, float a1, float w) {
-  return (1.0 - w)*a0 + w*a1;
-}
+// Use std::lerp for better precision and standard library benefits
+// Note: std::lerp handles floating-point edge cases better than custom implementation
 
-vec3 lerp(vec3 a0, vec3 a1, float w) {
-  return (1.0f - w)*a0 + w*a1;
+// Custom vec3 lerp since std::lerp only works with scalar types
+vec3 vec3Lerp(vec3 a0, vec3 a1, float w) {
+  return vec3(std::lerp(a0.x, a1.x, w), std::lerp(a0.y, a1.y, w), std::lerp(a0.z, a1.z, w));
 }
 
 float nonZero(float val) {
@@ -337,7 +335,7 @@ vec3 pointOfIntersection(Line l0, Line l1) {
   vec3 t = (b0 - a0);
   float detA = determinant(mat3(t, _B, crossVec));
 
-  float t0 = clamp(detA/denom, 0.f, magA);
+  float t0 = std::clamp(detA/denom, 0.f, magA);
 
   vec3 pA = a0 + (_A * t0); // Projected closest point on segment A
 
@@ -485,13 +483,13 @@ vec3 lineAtZ(Line l, float z) {
 
 static item randomSeed = 1;
 
-item nextRand(item* randomSeed) {
+item nextRand(item* seed) {
   // xorshift* 32-bit
-  item x = *randomSeed;
+  item x = *seed;
   x ^= x << 13;
   x ^= x >> 17;
   x ^= x << 5;
-  *randomSeed = x;
+  *seed = x;
   return x < 0 ? -x : x;
 
   //*randomSeed = 1103515245*(*randomSeed) + 12345;
@@ -500,19 +498,19 @@ item nextRand() {
   return nextRand(&randomSeed);
 }
 
-item randItem(item* randomSeed, item num) {
-  return nextRand(randomSeed) % num;
+item randItem(item* seed, item num) {
+  return nextRand(seed) % num;
 }
 item randItem(item num) {
   if (num == 0) return 0;
   return nextRand() % num;
 }
 
-item randItem(item* randomSeed, item a, item b) {
+item randItem(item* seed, item a, item b) {
   item max = std::max(a, b);
   item min = std::min(a, b);
   item diff = max - min;
-  return randItem(randomSeed, diff) + min;
+  return randItem(seed, diff) + min;
 }
 
 item randItem(item a, item b) {
@@ -548,16 +546,16 @@ item randInSet(set<item>* s, item num) {
 }
 
 const float mf = INT_MAX;
-float randFloat(item* randomSeed) {
-  uint32_t us = nextRand(randomSeed);
+float randFloat(item* seed) {
+  uint32_t us = nextRand(seed);
   return us/mf;
 }
 float randFloat() {
   return randFloat(&randomSeed);
 }
 
-float randFloat(item* randomSeed, float a, float b) {
-  return lerp(a, b, randFloat(randomSeed));
+float randFloat(item* seed, float a, float b) {
+  return ::std::lerp(a, b, randFloat(seed));
 }
 float randFloat(float a, float b) {
   return randFloat(&randomSeed, a, b);

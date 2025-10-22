@@ -103,7 +103,7 @@ vec3 adjustRoofTex(vec3 loc, vec3 br, vec3 axis) {
   float y = dot(along, vec3(axis.y, -axis.x, 0));
   y = -length(vec3(0, y, along.z));
   vec3 result = vec3(0, 0.25, 0) + vec3(x,y,0)/16.f;
-  result.y = clamp(result.y, 0.f, 0.25f);
+  result.y = std::clamp(result.y, 0.f, 0.25f);
   result.z = 1;
   return result;
 }
@@ -1352,8 +1352,8 @@ void renderBoundaries(Mesh* mesh, Mesh* textMesh) {
     float spacing = mapSize/100;
     float lowTide = getDesign(1)->lowTide;
     for (float i = spacing*.5f; i < mapSize; i += spacing) {
-      vec3 loc = vec3(lowTide, i-mapSize*.5f, 0);
-      insertMesh(mesh, import->mesh, loc, 0, 0, vec3(1,1,1));
+      vec3 boundaryLoc = vec3(lowTide, i-mapSize*.5f, 0);
+      insertMesh(mesh, import->mesh, boundaryLoc, 0, 0, vec3(1,1,1));
     }
   }
 }
@@ -1459,21 +1459,21 @@ void renderHandles() {
       vec3 topLoc = structure->location +
         vec3(0,0,size.z - sectionLength);
       float fontSize = 10.f;
-      vec3 ualong = normalize(along) * fontSize;
-      vec3 uright = normalize(right) * fontSize;
+      vec3 textUalong = normalize(along) * fontSize;
+      vec3 textUright = normalize(right) * fontSize;
       vec3 hdown = vec3(0,0,-fontSize);
       renderStringCentered(textMesh, heightStr,
           topLoc-right*1.1f+along*.5f,
-          -ualong, hdown);
+          -textUalong, hdown);
       renderStringCentered(textMesh, heightStr,
           topLoc+right*1.1f+along*.5f,
-          ualong, hdown);
+          textUalong, hdown);
       renderStringCentered(textMesh, heightStr,
           topLoc+right*0.f-along*.1f,
-          uright, hdown);
+          textUright, hdown);
       renderStringCentered(textMesh, heightStr,
           topLoc+right*0.f+along*1.1f,
-          -uright, hdown);
+          -textUright, hdown);
       free(heightStr);
     }
   }
@@ -1499,22 +1499,22 @@ void renderDecoHandles() {
     float sangle = sin(deco->yaw);
     vec3 ualong = vec3(cangle, sangle, 0);
     vec3 uright = vec3(-sangle, cangle, 0);
-    vec3 up = vec3(0, 0, 1);
-    vec3 loc = deco->location - uright*.5f - ualong*.5f - up*.5f;
+    vec3 decoUp = vec3(0, 0, 1);
+    vec3 loc = deco->location - uright*.5f - ualong*.5f - decoUp*.5f;
 
     bool gray = getSelectionType() == SelectionDeco &&
       i != getSelection();
     vec3 cRed = gray ? colorDarkGray : colorRed;
     vec3 cGreen = gray ? colorDarkGray : colorBrightGreen;
 
-    makeAngledCube(mesh, loc, uright, ualong, up, true, colorRed);
+    makeAngledCube(mesh, loc, uright, ualong, decoUp, true, colorRed);
 
     if (deco->decoType >= numLegacyDecoTypes) {
       vec3 along = ualong * deco->scale * 10.f;
       makeAngledCube(mesh, loc-along,
-          uright, ualong, up, true, colorBrightGreen);
+          uright, ualong, decoUp, true, colorBrightGreen);
       makeAngledCube(mesh, loc+uright*.625f,
-          -uright*.25f, ualong-along, up*.25f, true, cGreen);
+          -uright*.25f, ualong-along, decoUp*.25f, true, cGreen);
     }
   }
 

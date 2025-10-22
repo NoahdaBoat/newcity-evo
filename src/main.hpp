@@ -15,7 +15,8 @@ using namespace glm;
 
 #include <vector>
 using namespace std;
-using glm::clamp;
+// Note: std::clamp is used for scalar types, glm::clamp for vector types
+// This provides better performance and follows modern C++ best practices
 
 #include "game/constants.hpp"
 

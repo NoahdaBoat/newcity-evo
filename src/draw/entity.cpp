@@ -370,7 +370,7 @@ item getEntityMesh(Entity* entity, Cull cull) {
   //vec2 buffer;
   /*
   if (getFOV() > 0.f) {
-    //float fovBias = clamp(6 - getFOV()*20, 0.5f, 4.f);
+    //float fovBias = std::clamp(6 - getFOV()*20, 0.5f, 4.f);
     //float fovBias = getBrightness() * 4.f;
     float fovBias = getFOVBias();
     buffer = vec2(1,1) * (1 + es*fovBias/w);

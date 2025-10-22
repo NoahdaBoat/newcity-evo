@@ -402,10 +402,10 @@ void renderPart(Part* part, PartRenderer renderer) {
 
       Line clip = renderer.clip;
       float uiX = uiGridSizeX*getAspectRatio();
-      clip.start.x = clamp(clip.start.x, 0.f, uiX);
-      clip.start.y = clamp(clip.start.y, 0.f, uiGridSizeY);
-      clip.end.x = clamp(clip.end.x, 0.f, uiX);
-      clip.end.y = clamp(clip.end.y, 0.f, uiGridSizeY);
+      clip.start.x = std::clamp(clip.start.x, 0.f, uiX);
+      clip.start.y = std::clamp(clip.start.y, 0.f, uiGridSizeY);
+      clip.end.x = std::clamp(clip.end.x, 0.f, uiX);
+      clip.end.y = std::clamp(clip.end.y, 0.f, uiGridSizeY);
 
       //SPDLOG_INFO("ttDim ({},{};{},{}) clip ({},{};{},{})",
           //ttDim.start.x, ttDim.start.y, ttDim.end.x, ttDim.end.y,

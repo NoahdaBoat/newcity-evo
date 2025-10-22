@@ -74,7 +74,7 @@ void webLink(char* url) {
   #ifdef WIN32
     ShellExecuteA(0, "open", url, NULL, NULL, SW_SHOWNORMAL);
   #else
-    system(sprintf_o("xdg-open %s", url));
+    (void)system(sprintf_o("xdg-open %s", url));
   #endif
 }
 
@@ -481,7 +481,7 @@ void renderTextInner(MD_TEXTTYPE type, char* text, PartCursor* cursor) {
     line = spanCenter(cursor->loc, cursor->indent, cursor->size,
         text, &endCursor);
   } else {
-    line = span(cursor->loc, cursor->indent, cursor->size,
+    line = textSpan(cursor->loc, cursor->indent, cursor->size,
         text, &endCursor);
   }
   r(cursor->part, line);

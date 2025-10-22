@@ -426,7 +426,7 @@ bool setDesignParameterValue(item param, float val) {
     val = val - 360.f * floor(val/360.f);
     val *= degToRad;
   //} else if (param == DPRoofSlope) {
-    //val = clamp(val, 0.f, 2.f);
+    //val = std::clamp(val, 0.f, 2.f);
   } else if (param > DPLocationZ && param < DPConstructionCost) {
     if (val < 0) val = 0;
   }
@@ -916,7 +916,7 @@ Part* designConfigPanel() {
     item numTex = numMatchingTexturesForBuilding(getSelectedDesignNdx());
     float colorSliderLoc = numTex <= 1 ? 0.f : b->color*1.0f/(numTex-1);
     float sliderWidth = (dcpWidth*.72f)-dcpScale-dcpPadding;
-    colorSliderLoc = clamp(colorSliderLoc, 0.f, 1.f);
+    colorSliderLoc = std::clamp(colorSliderLoc, 0.f, 1.f);
     b->color = colorSliderLoc*(numTex-1);
     r(result, slider(vec2(dcpScale,y), vec2(sliderWidth,dcpScale), colorSliderLoc, setColor));
     Part* tspAlbedoBtn = r(result, button(vec2(dcpWidth*.72f,y), iconMenu, vec2(dcpWidth*.28f, dcpScale), strdup_s("Select"), openTextureSelect, TSSAlbedo));
@@ -990,7 +990,7 @@ Part* designConfigPanel() {
       }
 
       y += dpSize.y + dcpPadding;
-      r(result, span(vec2(0,y), 0, vec2(dcpWidth,0.6),
+      r(result, textSpan(vec2(0,y), 0, vec2(dcpWidth,0.6),
         strdup_s("When the building is placed, everything before High Tide"
           " will be land. Everything after Low Tide will be water. Anything" 
           " between High Tide and Low Tide can be either land or water."
