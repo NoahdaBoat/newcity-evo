@@ -153,7 +153,7 @@ endif()
 
 if(NOT WIN32)
   SET(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -g -std=c++20")
+    "${CMAKE_CXX_FLAGS} -g -std=c++23")
 	SET(CMAKE_CXX_FLAGS
   "${CMAKE_CXX_FLAGS} -Werror=return-type") #-Wall
 SET(CMAKE_CXX_FLAGS
