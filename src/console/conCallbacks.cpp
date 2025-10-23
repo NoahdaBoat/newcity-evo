@@ -33,7 +33,11 @@
 #include "../tutorial.hpp"
 #include "../weather.hpp"
 #include "../vehicle/travelGroup.hpp"
-#include "../zone.hpp"
+#include "../util.hpp"
+#include "../collisionTable.hpp"
+#include "../money.hpp"
+#include "../economy.hpp"
+#include "../game/game.hpp"
 
 
 bool conCallbackAnyBuildingPlop(std::string data) {
@@ -84,6 +88,48 @@ bool conCallbackCapture(std::string data) {
 
 bool conCallbackClear(std::string data) {
   consoleClear();
+  return true;
+}
+
+bool conCallbackCollisionRebuild(std::string data) {
+  consolePrintLine("Rebuilding collision tables...");
+  rebuildCollisionTablesFull();
+  consolePrintLine("Collision table rebuild complete!");
+  return true;
+}
+
+bool conCallbackResetMoney(std::string data) {
+  Budget* budget = getCurrentBudget();
+  SPDLOG_INFO("Before reset: balance={}, propertyValue={}", 
+    budget->line[BudgetBalance], getStatistic(ourCityEconNdx(), AggregatePropertyValue));
+  SPDLOG_INFO("Interest rate: {}, loanRepaymentTime: {}", getInterestRate(), getLoanRepaymentTime());
+  SPDLOG_INFO("National interest rate: {}, inflation: {}", getNationalInterestRate(), getInflation());
+  
+  budget->line[BudgetBalance] = 10000000; // 10 million dollars
+  SPDLOG_INFO("After reset: balance={}", budget->line[BudgetBalance]);
+  consolePrintLine("Money reset to $10,000,000");
+  return true;
+}
+
+bool conCallbackResetPropertyValue(std::string data) {
+  setStat(ourCityEconNdx(), AggregatePropertyValue, 0);
+  consolePrintLine("Property value reset to $0");
+  return true;
+}
+
+bool conCallbackResetAllMoney(std::string data) {
+  // Reset all money-related values to safe defaults
+  resetMoney();
+  
+  // Set safe starting values
+  Budget* budget = getCurrentBudget();
+  budget->line[BudgetBalance] = 10000000; // 10 million
+  budget->line[LineOfCredit] = 20000000;  // 20 million line of credit
+  
+  // Reset property value
+  setStat(ourCityEconNdx(), AggregatePropertyValue, 0);
+  
+  consolePrintLine("All money values reset to safe defaults");
   return true;
 }
 

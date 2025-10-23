@@ -56,6 +56,13 @@ void initCollisionTables() {
   }
 }
 
+void rebuildCollisionTables() {
+  // This function will be implemented in a separate file to avoid circular dependencies
+  // For now, just clear and reinitialize the tables
+  resetCollisionTables();
+  initCollisionTables();
+}
+
 void addToCollisionTable(CollisionIndex ci, Box b, item it) {
   const int landSize = getLandSize();
   const int chunkSize = getChunkSize();

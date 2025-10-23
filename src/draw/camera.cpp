@@ -59,9 +59,9 @@ static int windowFocus = GLFW_FALSE;
 static item msaaSamples = 4;
 
 const GLFWvidmode* nativeVideoMode;
-WindowMode nextWindowMode = Fullscreen;
-WindowMode nextWindowModeBack = Fullscreen;
-WindowMode currentWindowMode = Fullscreen;
+WindowMode nextWindowMode = Windowed;
+WindowMode nextWindowModeBack = Windowed;
+WindowMode currentWindowMode = Windowed;
 
 Perspective perspective_g = MainPerspective;
 Perspective perspective_r = MainPerspective;
@@ -917,22 +917,32 @@ int initGraphics() {
   initFramebuffers();
 
   SPDLOG_INFO("Configuring OpenGL state, setting up framebuffers");
+  SPDLOG_INFO("Setting swap interval");
   glfwSwapInterval(1);
+  SPDLOG_INFO("Enabling blend");
   glEnable(GL_BLEND);
+  SPDLOG_INFO("Setting blend function");
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  SPDLOG_INFO("Enabling depth test");
   glEnable(GL_DEPTH_TEST);
+  SPDLOG_INFO("Setting depth function");
   glDepthFunc(GL_LESS);
   if (msaaSamples > 1) {
+    SPDLOG_INFO("Enabling multisample");
     glEnable(GL_MULTISAMPLE);
   } else {
+    SPDLOG_INFO("Disabling multisample");
     glDisable(GL_MULTISAMPLE);
   }
   if (c(CGammaCorrect)) {
+    SPDLOG_INFO("Enabling framebuffer SRGB");
     glEnable(GL_FRAMEBUFFER_SRGB);
   } else {
+    SPDLOG_INFO("Disabling framebuffer SRGB");
     glDisable(GL_FRAMEBUFFER_SRGB);
   }
 
+  SPDLOG_INFO("Setting up cursor");
   setupCursor(mode->width, mode->height);
   SPDLOG_INFO("Graphics initialized successfully");
   return 0;

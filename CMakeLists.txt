@@ -202,6 +202,7 @@ SET(ALL_FILES
   src/business.cpp
   src/city.cpp
   src/collisionTable.cpp
+  src/collisionRebuild.cpp
   src/color.cpp
   src/compass.cpp
   src/configuration.cpp

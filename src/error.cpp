@@ -98,54 +98,82 @@ const int32_t MAX_ERROR_WIN = 10;
 static char* binaryMap = NULL;
 static Cup<BinaryMapEntry> functionTable;
 static bool wasAnyErrorDetected = false;
+static bool inErrorHandler = false;
 
 
 bool anyErrorDetected() {
   return wasAnyErrorDetected;
 }
 
-void parseBinaryMap() {
-  std::ifstream is("binary_map", std::ifstream::binary);
-  if (is) {
-    // Get length of file
-    is.seekg(0, is.end);
-    int length = is.tellg();
-    is.seekg(0, is.beg);
-
-    // Read into buffer
-    binaryMap = new char[length+1];
-    is.read(binaryMap, length);
-    is.close();
-    binaryMap[length] = '\0';
-
-    // Build functionTable
-    functionTable.reserve(15000);
-    int lastBreak = 0;
-    bool readingFunctionName = false;
-    for (int i = 0; i < length; i++) {
-      char c = binaryMap[i];
-
-      if (readingFunctionName) {
-        if (c == '\n' || c == '\r' ) {
-          binaryMap[i] = '\0';
-          BinaryMapEntry entry = functionTable.back();
-          lastBreak = i+1;
-          readingFunctionName = false;
-        }
-
-      } else if (c == ' ') {
-        BinaryMapEntry entry;
-        entry.functionName = &binaryMap[i+1];
-        entry.memOffset = strtol(&binaryMap[lastBreak], NULL, 16);
-        functionTable.push_back(entry);
-        readingFunctionName = true;
-      }
-    }
-    SPDLOG_INFO("Parsed binary_map: {} entries found", functionTable.size());
+void cleanupErrorHandling() {
+  if (binaryMap) {
+    delete[] binaryMap;
+    binaryMap = NULL;
   }
+  functionTable.clear();
+}
+
+void parseBinaryMap() {
+  // Clean up any existing binary map
+  if (binaryMap) {
+    delete[] binaryMap;
+    binaryMap = NULL;
+  }
+  
+  std::ifstream is("binary_map", std::ifstream::binary);
+  if (!is.good()) {
+    SPDLOG_WARN("binary_map file not found or cannot be opened");
+    return;
+  }
+  
+  // Get length of file
+  is.seekg(0, is.end);
+  int length = is.tellg();
+  is.seekg(0, is.beg);
+  
+  if (length <= 0) {
+    SPDLOG_WARN("binary_map file is empty");
+    is.close();
+    return;
+  }
+
+  // Read into buffer
+  binaryMap = new char[length+1];
+  is.read(binaryMap, length);
+  is.close();
+  binaryMap[length] = '\0';
+
+  // Build functionTable
+  functionTable.reserve(15000);
+  int lastBreak = 0;
+  bool readingFunctionName = false;
+  for (int i = 0; i < length; i++) {
+    char c = binaryMap[i];
+
+    if (readingFunctionName) {
+      if (c == '\n' || c == '\r' ) {
+        binaryMap[i] = '\0';
+        BinaryMapEntry entry = functionTable.back();
+        lastBreak = i+1;
+        readingFunctionName = false;
+      }
+
+    } else if (c == ' ') {
+      BinaryMapEntry entry;
+      entry.functionName = &binaryMap[i+1];
+      entry.memOffset = strtol(&binaryMap[lastBreak], NULL, 16);
+      functionTable.push_back(entry);
+      readingFunctionName = true;
+    }
+  }
+  SPDLOG_INFO("Parsed binary_map: {} entries found", functionTable.size());
 }
 
 const char* lookupFunction(uint64_t memOffset) {
+  if (functionTable.size() == 0) {
+    return "unknown";
+  }
+  
   int first = 0;
   int size = functionTable.size();
   int last = size-1;
@@ -163,14 +191,21 @@ const char* lookupFunction(uint64_t memOffset) {
     middle = (first + last)/2;
     middle = middle < 0 ? 0 : middle >= size ? size-1 : middle;
   }
-  return functionTable.get(middle)->functionName;
+  
+  BinaryMapEntry* entry = functionTable.get(middle);
+  return entry ? entry->functionName : "unknown";
 }
 
 void resolveFunctions(char* stacktrace) {
+  if (!stacktrace) {
+    return;
+  }
+  
   char* memOffsetPtr = 0;
   char* functionNamePtr = 0;
+  size_t stacktraceLen = strlen(stacktrace);
 
-  for (int i = 0;; i++) {
+  for (size_t i = 0; i < stacktraceLen; i++) {
     char c = stacktrace[i];
 
     if (c == '\n' || c == '\0') {
@@ -180,13 +215,14 @@ void resolveFunctions(char* stacktrace) {
         int memOffset = strtol(memOffsetPtr, NULL, 16);
         const char* functionName = lookupFunction(memOffset);
         char* cAddr = &stacktrace[i];
-        int j = 0;
+        size_t j = 0;
 
+        // Bounds checking to prevent buffer overflow
         for (; &functionNamePtr[j] < &stacktrace[i] &&
-            functionName[j] != '\0'; j++) {
+            functionName[j] != '\0' && j < stacktraceLen; j++) {
           functionNamePtr[j] = functionName[j];
         }
-        for (; &functionNamePtr[j] < &stacktrace[i]; j++) {
+        for (; &functionNamePtr[j] < &stacktrace[i] && j < stacktraceLen; j++) {
           functionNamePtr[j] = ' ';
         }
       }
@@ -196,7 +232,7 @@ void resolveFunctions(char* stacktrace) {
         break;
       }
 
-    } else if (memOffsetPtr == 0 && c == 'x') {
+    } else if (memOffsetPtr == 0 && c == 'x' && i > 0) {
       memOffsetPtr = &stacktrace[i+1];
       functionNamePtr = &stacktrace[i-1];
     }
@@ -254,7 +290,9 @@ void initErrorHandlingCore() {
   #include <stdlib.h>
 
   void segfault_sigaction(int signal, siginfo_t *si, void *arg) {
-    handleError("SEGFAULT!");
+    // Simple error logging without stacktrace to avoid recursion
+    SPDLOG_ERROR("SEGFAULT detected at address: {}", (void*)si->si_addr);
+    _exit(1);
   }
 
   void initErrorHandling() {
@@ -430,6 +468,16 @@ static bool errorState = false;
 
 void handleErrorInner(const char* error) {
   SPDLOG_ERROR("ERROR: {}", error);
+  
+  // Prevent recursive error handling
+  if (inErrorHandler) {
+    SPDLOG_ERROR("Recursive error detected, skipping stacktrace generation");
+    return;
+  }
+  
+  inErrorHandler = true;
+  SPDLOG_ERROR("Setting inErrorHandler to true");
+  
   //boost::stacktrace::safe_dump_to("./backtrace.dump");
   logStacktrace();
   bool firstError = !errorState;
@@ -447,6 +495,9 @@ void handleErrorInner(const char* error) {
     //}
     #endif
   }
+  
+  inErrorHandler = false;
+  SPDLOG_ERROR("Setting inErrorHandler to false");
   //throw error;
 }
 

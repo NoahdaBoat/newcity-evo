@@ -62,7 +62,7 @@ pi_o = 3.141592
 -- CPitchClassic = pi_o*.5 - 0.46 -- 2:1 axonometric projection ala SC2K
 -- CMeshQuality = 1.0
 -- CCameraFOV = 0 -- 0 = ortho, 5 = 5 degrees FOV, 90 = 90 degrees FOV
--- CSatMapResolution = 4096
+CSatMapResolution = 4096
 
 -- CCameraLag = 0.1
 -- CCameraSpringSpeed = 0.1
@@ -890,7 +890,7 @@ pi_o = 3.141592
 -----------
 
 -- CGoodFaithLOC = 20000002
--- CStartingMoney = 0
+CStartingMoney = 10000000
 -- CMaxBudgetControl = 1.5
 -- CBudgetControlFactor = 0.5
 -- CMoneyMultiplier = 1 -- money is multiplied by this value before being displayed to player

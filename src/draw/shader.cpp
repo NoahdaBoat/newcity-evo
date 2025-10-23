@@ -373,6 +373,15 @@ GLuint loadShaderFile(char* filename, GLuint type) {
   char* modShaders = sprintf_o("%sshaders", modDirectory());
   // load from the mods directory
   char* shaderCode0 = stb_include_file(modFilename, (char*)"", modShaders, error);
+  
+  // Check if the file was loaded successfully
+  if (shaderCode0 == NULL) {
+    SPDLOG_ERROR("Could not load shader file: {} (Error: {})", modFilename, error);
+    free(modFilename);
+    free(modShaders);
+    handleError("Bad shader (file)");
+  }
+  
   // load from the base directory
   char* shaderCode = stb_include_string(shaderCode0, (char*)"", (char*)"shaders",
       modFilename, error);

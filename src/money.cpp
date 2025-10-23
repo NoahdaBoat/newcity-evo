@@ -15,6 +15,7 @@
 
 #include "spdlog/spdlog.h"
 #include <cmath>
+#include <limits>
 
 static float taxRate[5] = {0.00, 0.01, 0.00, 0.00, 0.00};
 static bool taxEnabled[5] = {false, true, true, false, true};
@@ -258,7 +259,21 @@ Budget* getCurrentBudget() {
 }
 
 double getInterestRate() {
-  return getNationalInterestRate() + 0.002 * loanRepaymentTime;
+  double nationalRate = getNationalInterestRate();
+  
+  // Validate national interest rate
+  if (std::isnan(nationalRate) || std::isinf(nationalRate) || nationalRate < 0) {
+    SPDLOG_ERROR("getNationalInterestRate() returned invalid value: {}, using fallback 0.04", nationalRate);
+    nationalRate = 0.04;
+  }
+  
+  // Validate loan repayment time
+  if (std::isnan(loanRepaymentTime) || std::isinf(loanRepaymentTime) || loanRepaymentTime <= 0) {
+    SPDLOG_ERROR("loanRepaymentTime is invalid: {}, using fallback 5.0", loanRepaymentTime);
+    loanRepaymentTime = 5.0;
+  }
+  
+  return nationalRate + 0.002 * loanRepaymentTime;
 }
 
 double compound(double interestRate, double time) {
@@ -269,10 +284,27 @@ void applyInterest(Budget* b, double duration) {
   double balance = b->line[BudgetBalance];
   double interestRate = getInterestRate();
 
+  // Check for invalid values
+  if (std::isnan(balance) || std::isinf(balance)) {
+    SPDLOG_ERROR("Invalid BudgetBalance detected: {}", balance);
+    handleError("Invalid Budget Balance (NaN or Inf)\n");
+    b->line[BudgetBalance] = 0;
+    return;
+  }
+
+  if (std::isnan(interestRate) || std::isinf(interestRate) || interestRate < 0) {
+    SPDLOG_ERROR("Invalid interest rate detected: {}", interestRate);
+    handleError("Invalid Interest Rate (NaN, Inf, or negative)\n");
+    return;
+  }
+
   if (balance < 0) {
     double interest = (compound(interestRate, duration)-1) * -balance;
-    if (interest > 1e30 || interest < -1e30 || interest != interest) {
-      handleError("Infinite Interest Rate\n");
+    if (interest > 1e30 || interest < -1e30 || std::isnan(interest) || std::isinf(interest)) {
+      SPDLOG_ERROR("Invalid interest calculation: interest={}, balance={}, rate={}, duration={}", 
+        interest, balance, interestRate, duration);
+      handleError("Infinite or Invalid Interest Rate\n");
+      return;
     }
     transaction(b, LoanInterest, -interest);
   }
@@ -361,14 +393,47 @@ void runBudget(Budget* budget, float dur) {
 
 void computeBudgetLOC(Budget* budget, float estEarnings) {
   // Compute line of credit
-  //double estEarnings = budget->line[TotalEarnings];
-  //estEarnings = estEarnings < 0 ? 0 : estEarnings;
   double interestRate = getInterestRate();
+  
+  // Validate inputs
+  if (std::isnan(interestRate) || std::isinf(interestRate) || interestRate < 0) {
+    SPDLOG_ERROR("Invalid interest rate in computeBudgetLOC: {}", interestRate);
+    budget->line[LineOfCredit] = c(CGoodFaithLOC) * getInflation();
+    return;
+  }
+  
+  if (std::isnan(estEarnings) || std::isinf(estEarnings)) {
+    SPDLOG_ERROR("Invalid estEarnings in computeBudgetLOC: {}", estEarnings);
+    estEarnings = 0;
+  }
+  
+  double assets = budget->line[Assets];
+  if (std::isnan(assets) || std::isinf(assets)) {
+    SPDLOG_ERROR("Invalid assets in computeBudgetLOC: {}", assets);
+    assets = 0;
+    budget->line[Assets] = 0;
+  }
+  
   double compoundedInterest = compound(interestRate, loanRepaymentTime);
-  double loc = (budget->line[Assets]*c(CAssetLOC)
-     + c(CGoodFaithLOC)*getInflation() + estEarnings) *
+  
+  // Prevent division by zero or very small values
+  if (compoundedInterest < 0.0001 || std::isnan(compoundedInterest) || std::isinf(compoundedInterest)) {
+    SPDLOG_ERROR("Invalid compoundedInterest in computeBudgetLOC: {}", compoundedInterest);
+    budget->line[LineOfCredit] = c(CGoodFaithLOC) * getInflation();
+    return;
+  }
+  
+  double loc = (assets * c(CAssetLOC) + c(CGoodFaithLOC) * getInflation() + estEarnings) *
     loanRepaymentTime / compoundedInterest;
+    
   loc = loc < 0 ? 0 : loc;
+  
+  // Final validation
+  if (std::isnan(loc) || std::isinf(loc)) {
+    SPDLOG_ERROR("Computed invalid LOC: {}", loc);
+    loc = c(CGoodFaithLOC) * getInflation();
+  }
+  
   budget->line[LineOfCredit] = loc;
 }
 
@@ -431,25 +496,29 @@ void updateMoney(double duration) {
   estimateBudgetNext.line[BudgetBalance] += estimateBudget.line[BudgetBalance];
   runBudget(&estimateBudgetNext, 1);
 
-  float transitIncome = currentBudget->line[TransitIncome];
-  transitIncome *= 1/(1-yearRemaining);
-  transaction(&estimateBudget, TransitIncome, transitIncome * yearRemaining);
-  transaction(&estimateBudgetNext, TransitIncome, transitIncome);
+  // Prevent division by zero when yearRemaining is 1 (start of new year)
+  float yearElapsed = 1 - yearRemaining;
+  if (yearElapsed > 0.0001) { // Only extrapolate if we're not at year boundary
+    float transitIncome = currentBudget->line[TransitIncome];
+    transitIncome *= 1/yearElapsed;
+    transaction(&estimateBudget, TransitIncome, transitIncome * yearRemaining);
+    transaction(&estimateBudgetNext, TransitIncome, transitIncome);
 
-  float transitOps = currentBudget->line[TransitExpenses];
-  transitOps *= 1/(1-yearRemaining);
-  transaction(&estimateBudget, TransitExpenses, transitOps * yearRemaining);
-  transaction(&estimateBudgetNext, TransitExpenses, transitOps);
+    float transitOps = currentBudget->line[TransitExpenses];
+    transitOps *= 1/yearElapsed;
+    transaction(&estimateBudget, TransitExpenses, transitOps * yearRemaining);
+    transaction(&estimateBudgetNext, TransitExpenses, transitOps);
 
-  float repairEx = currentBudget->line[RepairExpenses];
-  repairEx *= 1/(1-yearRemaining);
-  transaction(&estimateBudget, RepairExpenses, repairEx * yearRemaining);
-  transaction(&estimateBudgetNext, RepairExpenses, repairEx);
+    float repairEx = currentBudget->line[RepairExpenses];
+    repairEx *= 1/yearElapsed;
+    transaction(&estimateBudget, RepairExpenses, repairEx * yearRemaining);
+    transaction(&estimateBudgetNext, RepairExpenses, repairEx);
 
-  float fuelTax = currentBudget->line[FuelTaxIncome];
-  fuelTax *= 1/(1-yearRemaining);
-  transaction(&estimateBudget, FuelTaxIncome, fuelTax * yearRemaining);
-  transaction(&estimateBudgetNext, FuelTaxIncome, fuelTax);
+    float fuelTax = currentBudget->line[FuelTaxIncome];
+    fuelTax *= 1/yearElapsed;
+    transaction(&estimateBudget, FuelTaxIncome, fuelTax * yearRemaining);
+    transaction(&estimateBudgetNext, FuelTaxIncome, fuelTax);
+  }
 
   float earningsEst = estimateBudgetNext.line[TotalEarnings];
   computeBudgetLOC(currentBudget, earningsEst);
@@ -470,6 +539,14 @@ bool canBuy(Budget* b, BudgetLine line, money amount) {
 }
 
 void subtransaction(Budget* b, BudgetLine line, money amount) {
+  // Validate amount before transaction
+  if (std::isnan(amount) || std::isinf(amount)) {
+    SPDLOG_ERROR("Attempting to transaction NaN or Inf value: line={}, amount={}", 
+      (int)line, amount);
+    handleError("Invalid transaction amount (NaN or Inf)\n");
+    return;
+  }
+  
   b->line[line] += amount;
   if (b == getCurrentBudget()) {
     int flags = budgetLineFlags[line];
@@ -660,8 +737,19 @@ void readMoney(FileBuffer* file, int version) {
   if (version >= 28) {
     for (int i = 1; i <= 3; i++) {
       taxRate[i] = fread_float(file);
+      // Validate tax rates
+      if (std::isnan(taxRate[i]) || std::isinf(taxRate[i]) || taxRate[i] < 0 || taxRate[i] > 1) {
+        SPDLOG_ERROR("Loaded invalid taxRate[{}]: {}, resetting to default", i, taxRate[i]);
+        taxRate[i] = (i == 1) ? 0.01 : 0.0;
+      }
     }
     loanRepaymentTime = fread_float(file);
+    
+    // Validate loan repayment time
+    if (std::isnan(loanRepaymentTime) || std::isinf(loanRepaymentTime) || loanRepaymentTime <= 0) {
+      SPDLOG_ERROR("Loaded invalid loanRepaymentTime: {}, resetting to 5.0", loanRepaymentTime);
+      loanRepaymentTime = 5.0;
+    }
 
   } else {
     for (int i = 1; i <= 3; i++) {
@@ -676,15 +764,70 @@ void readMoney(FileBuffer* file, int version) {
       Budget b;
       budgetHistory.push_back(b);
       readBudget(file, &budgetHistory[i], version);
+      
+      // Validate critical budget values after reading
+      Budget* budget = &budgetHistory[i];
+      if (std::isnan(budget->line[BudgetBalance]) || std::isinf(budget->line[BudgetBalance])) {
+        SPDLOG_ERROR("Loaded invalid BudgetBalance in budget {}: {}, resetting to 0", 
+          i, budget->line[BudgetBalance]);
+        budget->line[BudgetBalance] = 0;
+      }
+      
+      if (std::isnan(budget->line[LineOfCredit]) || std::isinf(budget->line[LineOfCredit])) {
+        SPDLOG_ERROR("Loaded invalid LineOfCredit in budget {}: {}, resetting to default", 
+          i, budget->line[LineOfCredit]);
+        budget->line[LineOfCredit] = c(CGoodFaithLOC) * getInflation();
+      }
+      
+      // Validate all budget lines for NaN/Inf
+      for (int l = 0; l < numBudgetLines; l++) {
+        if (std::isnan(budget->line[l]) || std::isinf(budget->line[l])) {
+          SPDLOG_ERROR("Loaded invalid budget line {} in budget {}: {}, resetting to 0", 
+            l, i, budget->line[l]);
+          budget->line[l] = 0;
+        }
+      }
     }
     readBudget(file, &estimateBudget, version);
+    
+    // Validate estimate budget
+    for (int l = 0; l < numBudgetLines; l++) {
+      if (std::isnan(estimateBudget.line[l]) || std::isinf(estimateBudget.line[l])) {
+        SPDLOG_ERROR("Loaded invalid estimate budget line {}: {}, resetting to 0", 
+          l, estimateBudget.line[l]);
+        estimateBudget.line[l] = 0;
+      }
+    }
+    
     taxRate[4] = estimateBudget.control[FuelTaxIncome];
+    if (std::isnan(taxRate[4]) || std::isinf(taxRate[4]) || taxRate[4] < 0 || taxRate[4] > 1) {
+      SPDLOG_ERROR("Loaded invalid taxRate[4]: {}, resetting to 0", taxRate[4]);
+      taxRate[4] = 0.0;
+    }
+    
     if (version >= 51) {
       readBudget(file, &estimateBudgetNext, version);
+      
+      // Validate next estimate budget
+      for (int l = 0; l < numBudgetLines; l++) {
+        if (std::isnan(estimateBudgetNext.line[l]) || std::isinf(estimateBudgetNext.line[l])) {
+          SPDLOG_ERROR("Loaded invalid estimateBudgetNext line {}: {}, resetting to 0", 
+            l, estimateBudgetNext.line[l]);
+          estimateBudgetNext.line[l] = 0;
+        }
+      }
     }
 
   } else {
     getCurrentBudget()->line[BudgetBalance] = fread_money(file, version);
+    
+    // Validate loaded budget balance
+    if (std::isnan(getCurrentBudget()->line[BudgetBalance]) || 
+        std::isinf(getCurrentBudget()->line[BudgetBalance])) {
+      SPDLOG_ERROR("Loaded invalid BudgetBalance: {}, resetting to starting money", 
+        getCurrentBudget()->line[BudgetBalance]);
+      getCurrentBudget()->line[BudgetBalance] = c(CStartingMoney);
+    }
   }
 
   if (getGameMode() != ModeGame && version <= 58) {

@@ -907,6 +907,11 @@ bool timeSeriesHasData(item econNdx, Statistic stat) {
 }
 
 float getNationalInterestRate() {
+  // Validate before returning
+  if (std::isnan(nationalInterestRate) || std::isinf(nationalInterestRate) || nationalInterestRate < 0 || nationalInterestRate > 1) {
+    SPDLOG_ERROR("nationalInterestRate is invalid: {}, resetting to 0.04", nationalInterestRate);
+    nationalInterestRate = 0.04;
+  }
   return nationalInterestRate;
 }
 
@@ -925,6 +930,11 @@ float getInflationRate() {
 }
 
 money getInflation() {
+  // Validate before returning
+  if (std::isnan(inflation) || std::isinf(inflation) || inflation <= 0) {
+    SPDLOG_ERROR("inflation is invalid: {}, resetting to default", inflation);
+    inflation = defaultInflation;
+  }
   return inflation;
   /* double year = getCurrentDateTime()/oneYear;
   double factor = year/(inflationBaseYear-baseYear);
@@ -932,20 +942,108 @@ money getInflation() {
 }
 
 void updateEconomy(float duration) {
+  // Validate all economic variables before any calculations
+  if (std::isnan(economicWavePhase) || std::isinf(economicWavePhase)) {
+    SPDLOG_ERROR("economicWavePhase is NaN/Inf at start of updateEconomy, resetting");
+    economicWavePhase = 0.25;
+  }
+  
+  if (std::isnan(economicDeterminant) || std::isinf(economicDeterminant)) {
+    SPDLOG_ERROR("economicDeterminant is NaN/Inf at start of updateEconomy, resetting");
+    economicDeterminant = 1.0;
+  }
+  
+  if (std::isnan(nationalUnemp) || std::isinf(nationalUnemp)) {
+    SPDLOG_ERROR("nationalUnemp is NaN/Inf at start of updateEconomy, resetting");
+    nationalUnemp = 0.04;
+  }
+  
+  if (std::isnan(inflationRate) || std::isinf(inflationRate)) {
+    SPDLOG_ERROR("inflationRate is NaN/Inf at start of updateEconomy, resetting");
+    inflationRate = 0.04;
+  }
+  
+  if (std::isnan(inflation) || std::isinf(inflation) || inflation <= 0) {
+    SPDLOG_ERROR("inflation is NaN/Inf/<=0 at start of updateEconomy, resetting");
+    inflation = defaultInflation;
+  }
+  
+  if (std::isnan(nationalInterestRate) || std::isinf(nationalInterestRate)) {
+    SPDLOG_ERROR("nationalInterestRate is NaN/Inf at start of updateEconomy, resetting");
+    nationalInterestRate = 0.04;
+  }
+  
+  if (std::isnan(nationalStockIndex) || std::isinf(nationalStockIndex) || nationalStockIndex <= 0) {
+    SPDLOG_ERROR("nationalStockIndex is NaN/Inf/<=0 at start of updateEconomy, resetting");
+    nationalStockIndex = 1000;
+  }
+  
+  if (std::isnan(nationalStockTrajectory) || std::isinf(nationalStockTrajectory)) {
+    SPDLOG_ERROR("nationalStockTrajectory is NaN/Inf at start of updateEconomy, resetting");
+    nationalStockTrajectory = 1;
+  }
+  
   double prosperity = heatMapTotal(Prosperity)*2;
+  
+  // Validate prosperity
+  if (std::isnan(prosperity) || std::isinf(prosperity)) {
+    SPDLOG_ERROR("heatMapTotal(Prosperity) returned NaN/Inf, resetting to 0");
+    prosperity = 0;
+  }
+  
   double time = getCurrentDateTime();
   double adjRate = duration*.2f;
 
   economicWavePhase += randFloat(-.9,1.1) * duration / (2*pi_o);
   economicWavePhase += randFloat(-.1,.1) * .2 / (2*pi_o);
+  
+  // Validate economicWavePhase after modification
+  if (std::isnan(economicWavePhase) || std::isinf(economicWavePhase)) {
+    SPDLOG_ERROR("economicWavePhase became NaN/Inf after calculation, resetting");
+    economicWavePhase = 0.25;
+  }
+  
   setStat(nationalEconNdx(), EconomicWavePhase, economicWavePhase);
   double econDet = sin(economicWavePhase * 2*pi_o) * .5;
   //econDet = (econDet + 1)*.5; // range [0, 1]
   econDet += randFloat(0.5, 1.5-prosperity*.5);
   econDet -= prosperity*adjRate*.0075;
+  
+  // Debug: Check values before mix
+  if (std::isnan(economicDeterminant)) {
+    SPDLOG_ERROR("economicDeterminant is NaN BEFORE mix()");
+  }
+  if (std::isnan(econDet)) {
+    SPDLOG_ERROR("econDet is NaN before mix: prosperity={}, adjRate={}", prosperity, adjRate);
+    econDet = 0.5;
+  }
+  if (std::isnan(adjRate) || adjRate < 0) {
+    SPDLOG_ERROR("adjRate is invalid: {}, duration not provided?", adjRate);
+    adjRate = 0.1;
+  }
+  
   economicDeterminant = mix(economicDeterminant, econDet, adjRate*1.);
+  
+  // Debug: Check if mix produced NaN
+  if (std::isnan(economicDeterminant)) {
+    SPDLOG_ERROR("economicDeterminant is NaN AFTER mix(), before adding random");
+  }
+  
   economicDeterminant += randFloat(-1, 1)*adjRate*4.;
+  
+  // Debug: Check if adding random produced NaN
+  if (std::isnan(economicDeterminant)) {
+    SPDLOG_ERROR("economicDeterminant is NaN AFTER adding random, before clamp");
+  }
+  
   economicDeterminant = std::clamp(economicDeterminant, 0., 1.);
+  
+  // Validate economicDeterminant after calculation
+  if (std::isnan(economicDeterminant) || std::isinf(economicDeterminant)) {
+    SPDLOG_ERROR("economicDeterminant became NaN/Inf after calculation (after clamp), resetting");
+    economicDeterminant = 1.0;
+  }
+  
   setStat(nationalEconNdx(), EconomicDeterminant, economicDeterminant);
 
   double unemp = mix(0.04, 0.20, pow(1-economicDeterminant, 2));
@@ -959,7 +1057,33 @@ void updateEconomy(float duration) {
   infRate += randFloat(-0.02, 0.02);
   inflationRate = mix(inflationRate, infRate, adjRate*.5);
   inflationRate += randFloat(-1, 1)*adjRate;
-  inflation *= compound(inflationRate*randFloat(0.99,1.01), adjRate);
+  
+  // Validate inflationRate before using in compound
+  if (std::isnan(inflationRate) || std::isinf(inflationRate)) {
+    SPDLOG_ERROR("inflationRate became NaN/Inf during calculation, resetting");
+    inflationRate = 0.04;
+  }
+  
+  double compoundFactor = compound(inflationRate*randFloat(0.99,1.01), adjRate);
+  
+  // Validate compound result
+  if (std::isnan(compoundFactor) || std::isinf(compoundFactor) || compoundFactor <= 0 || compoundFactor > 10.0) {
+    SPDLOG_ERROR("compound() returned invalid/extreme value: {}, adjRate: {}, inflationRate: {}", 
+      compoundFactor, adjRate, inflationRate);
+    compoundFactor = 1.0; // neutral value for multiplication
+  }
+  
+  double newInflation = inflation * compoundFactor;
+  
+  // Validate inflation after multiplication and check for extreme values
+  if (std::isnan(newInflation) || std::isinf(newInflation) || newInflation <= 0 || newInflation > 1e6) {
+    SPDLOG_ERROR("inflation became invalid after compound multiplication: old={}, factor={}, new={}, resetting", 
+      inflation, compoundFactor, newInflation);
+    inflation = defaultInflation;
+  } else {
+    inflation = newInflation;
+  }
+  
   setStat(nationalEconNdx(), InflationRate, inflationRate);
   setStat(nationalEconNdx(), InflationIndex, inflation * 100 /
       defaultInflation);
@@ -969,6 +1093,13 @@ void updateEconomy(float duration) {
   nationalInterestRate = mix(nationalInterestRate, interest, adjRate);
   nationalInterestRate += randFloat(-1, 1)*adjRate;
   nationalInterestRate = std::clamp(nationalInterestRate, 0., 0.2);
+  
+  // Validate after clamp
+  if (std::isnan(nationalInterestRate) || std::isinf(nationalInterestRate)) {
+    SPDLOG_ERROR("nationalInterestRate became NaN/Inf after calculation, resetting");
+    nationalInterestRate = 0.04;
+  }
+  
   setStat(nationalEconNdx(), NationalInterestRate, nationalInterestRate);
 
   double traj = mix(-.8, 2., 1-pow(1-economicDeterminant, 4));
@@ -1363,6 +1494,52 @@ void readStatistics(FileBuffer* file, int version) {
     inflation = fread_double(file);
     nationalStockIndex = fread_double(file);
     nationalStockTrajectory = fread_double(file);
+
+    // Validate all loaded values and replace NaN/Inf with safe defaults
+    if (std::isnan(econDurToGo) || std::isinf(econDurToGo)) {
+      SPDLOG_ERROR("Loaded invalid econDurToGo: {}, resetting to 0", econDurToGo);
+      econDurToGo = 0;
+    }
+    
+    if (std::isnan(economicWavePhase) || std::isinf(economicWavePhase)) {
+      SPDLOG_ERROR("Loaded invalid economicWavePhase: {}, resetting to 0.25", economicWavePhase);
+      economicWavePhase = 0.25;
+    }
+    
+    if (std::isnan(economicDeterminant) || std::isinf(economicDeterminant)) {
+      SPDLOG_ERROR("Loaded invalid economicDeterminant: {}, resetting to 1.0", economicDeterminant);
+      economicDeterminant = 1.0;
+    }
+    
+    if (std::isnan(nationalUnemp) || std::isinf(nationalUnemp) || nationalUnemp < 0 || nationalUnemp > 1) {
+      SPDLOG_ERROR("Loaded invalid nationalUnemp: {}, resetting to 0.04", nationalUnemp);
+      nationalUnemp = 0.04;
+    }
+    
+    if (std::isnan(nationalInterestRate) || std::isinf(nationalInterestRate) || nationalInterestRate < 0 || nationalInterestRate > 1) {
+      SPDLOG_ERROR("Loaded invalid nationalInterestRate: {}, resetting to 0.04", nationalInterestRate);
+      nationalInterestRate = 0.04;
+    }
+    
+    if (std::isnan(inflationRate) || std::isinf(inflationRate)) {
+      SPDLOG_ERROR("Loaded invalid inflationRate: {}, resetting to 0.04", inflationRate);
+      inflationRate = 0.04;
+    }
+    
+    if (std::isnan(inflation) || std::isinf(inflation) || inflation <= 0) {
+      SPDLOG_ERROR("Loaded invalid inflation: {}, resetting to default", inflation);
+      inflation = defaultInflation;
+    }
+    
+    if (std::isnan(nationalStockIndex) || std::isinf(nationalStockIndex) || nationalStockIndex <= 0) {
+      SPDLOG_ERROR("Loaded invalid nationalStockIndex: {}, resetting to 1000", nationalStockIndex);
+      nationalStockIndex = 1000;
+    }
+    
+    if (std::isnan(nationalStockTrajectory) || std::isinf(nationalStockTrajectory)) {
+      SPDLOG_ERROR("Loaded invalid nationalStockTrajectory: {}, resetting to 1", nationalStockTrajectory);
+      nationalStockTrajectory = 1;
+    }
 
     int numStats = fread_int(file);
     item numEcons = 1;

@@ -10,6 +10,8 @@ enum CollisionIndex {
 
 void resetCollisionTables();
 void initCollisionTables();
+void rebuildCollisionTables();
+void rebuildCollisionTablesFull();
 void addToCollisionTable(CollisionIndex ci, Box b, item it);
 void removeFromCollisionTable(CollisionIndex ci, item it);
 vector<item> getCollisions(CollisionIndex ci, Box b, item exclude);

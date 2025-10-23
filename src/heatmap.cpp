@@ -22,6 +22,8 @@
 #include "parts/leftPanel.hpp"
 
 #include "spdlog/spdlog.h"
+#include <cmath>
+#include <limits>
 
 enum HeatMapBufferIndex {
   HeatMapReadFront, HeatMapReadBack, HeatMapWrite,
@@ -554,8 +556,18 @@ void computeHeatMapTotal(HeatMapIndex ndx, HeatMapBufferIndex buffer) {
   }
   //const float standardDeviation =
     //std::clamp(pow(deviation / (numTiles-1), .5f), 0.001f, 1.0f);
-  const float mean = total / count;
+  
+  // Prevent division by zero if no tiles meet the threshold
+  const float mean = (count > 0) ? (total / count) : init;
   total = std::clamp(mean, 0.f, 1.f);
+  
+  // Validate result before storing
+  if (std::isnan(total) || std::isinf(total)) {
+    SPDLOG_ERROR("computeHeatMapTotal produced NaN/Inf for heatmap {}, count={}, mean={}, resetting to 0", 
+      ndx, count, mean);
+    total = 0;
+  }
+  
   heatMapTotalValue[ndx] = total;
 }
 

@@ -62,6 +62,26 @@ const std::vector<ConCmd> conCmds
   "Clear the console",
   conCallbackClear),
 
+  ConCmd("collisionrebuild",
+  "Rebuild collision tables (fixes bulldozer road deletion issues)",
+  conCallbackCollisionRebuild,
+  true),
+
+  ConCmd("resetmoney",
+  "Reset money to $10,000,000 (fixes bulldozer deletion issues)",
+  conCallbackResetMoney,
+  true),
+
+  ConCmd("resetpropertyvalue",
+  "Reset property value to $0 (fixes money corruption)",
+  conCallbackResetPropertyValue,
+  true),
+
+  ConCmd("resetallmoney",
+  "Reset all money values to safe defaults (nuclear option)",
+  conCallbackResetAllMoney,
+  true),
+
   /*
   ConCmd("crash",
   "Crashes the game",

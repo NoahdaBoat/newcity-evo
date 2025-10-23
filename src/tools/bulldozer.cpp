@@ -226,6 +226,8 @@ void bulldozer_mouse_button_callback(InputEvent event) {
 
     } else if (currentDozer == destroyTool &&
         canBuy(RoadBuildExpenses, totalCost)) {
+      SPDLOG_INFO("Bulldozer: currentDozer={}, totalCost={}, balance={}, canAfford={}", 
+        currentDozer, totalCost, getCredit(), canBuy(RoadBuildExpenses, totalCost));
       transaction(EminentDomainExpenses, -emDomCost);
       transaction(AssetSalesIncome, -assetSales);
       playSound(_soundClickComplete);
